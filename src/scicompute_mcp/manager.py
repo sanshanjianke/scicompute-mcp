@@ -84,6 +84,27 @@ class BackendManager:
                 b.reset()
         return {"success": True, "message": "Reset all backends"}
     
+    def stop_all(self) -> None:
+        for b in self._backends.values():
+            if b._started:
+                try:
+                    b.stop()
+                except Exception:
+                    pass
+    
+    def stop(self, backend: Optional[str] = None) -> dict:
+        if backend:
+            b = self._backends.get(backend)
+            if b:
+                if b._started:
+                    b.stop()
+                    return {"success": True, "message": f"Stopped {backend}"}
+                return {"success": True, "message": f"{backend} not running"}
+            return {"success": False, "message": f"Backend '{backend}' not found"}
+        
+        self.stop_all()
+        return {"success": True, "message": "Stopped all backends"}
+    
     def doc(self, symbol: str, backend: Optional[str] = None) -> Result:
         selected, msg = self.select_backend(backend)
         if not selected:
@@ -118,7 +139,7 @@ class BackendManager:
                 result
             ]'''
         elif selected.name == "octave":
-            doc_code = f'help {symbol}'
+            doc_code = f'ans = help("{symbol}"); disp(ans)'
         else:
             return Result(
                 success=False,

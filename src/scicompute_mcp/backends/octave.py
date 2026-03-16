@@ -161,7 +161,7 @@ end_try_catch
     def stop(self) -> None:
         if self._session:
             try:
-                self._session.close()
+                self._session.exit()
             except:
                 pass
         self._session = None

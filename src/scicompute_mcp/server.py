@@ -1,4 +1,5 @@
 import asyncio
+import atexit
 import json
 import sys
 
@@ -11,6 +12,11 @@ from .manager import BackendManager
 
 server = Server("scicompute")
 manager = BackendManager()
+
+
+@atexit.register
+def _cleanup():
+    manager.stop_all()
 
 
 @server.list_tools()
@@ -51,6 +57,19 @@ async def list_tools() -> list[Tool]:
                     "backend": {
                         "type": "string",
                         "description": "Backend name to reset. Leave empty to reset all."
+                    }
+                }
+            }
+        ),
+        Tool(
+            name="stop_backend",
+            description="Stop and close a backend to free memory. Use this when you no longer need a backend or want to start fresh. The backend can be restarted later if needed.",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "backend": {
+                        "type": "string",
+                        "description": "Backend name to stop (e.g., 'octave', 'mathematica'). Leave empty to stop all."
                     }
                 }
             }
@@ -117,6 +136,11 @@ async def call_tool(name: str, arguments: dict) -> list:
     elif name == "reset":
         backend = arguments.get("backend")
         result = manager.reset(backend)
+        return [MCPTextContent(type="text", text=json.dumps(result))]
+    
+    elif name == "stop_backend":
+        backend = arguments.get("backend")
+        result = manager.stop(backend)
         return [MCPTextContent(type="text", text=json.dumps(result))]
     
     elif name == "doc":
