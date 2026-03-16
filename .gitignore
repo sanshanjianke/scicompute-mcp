@@ -40,4 +40,4 @@ Thumbs.db
 
 # Local config
 .env
-*.local
+*.localoctave-workspace

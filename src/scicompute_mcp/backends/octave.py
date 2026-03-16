@@ -1,5 +1,6 @@
 import base64
 import os
+import signal
 import tempfile
 from typing import Optional
 
@@ -161,8 +162,14 @@ end_try_catch
     def stop(self) -> None:
         if self._session:
             try:
+                pid = self._session._engine.repl.pid if self._session._engine else None
                 self._session.exit()
-            except:
+                if pid:
+                    try:
+                        os.waitpid(pid, os.WNOHANG)
+                    except ChildProcessError:
+                        pass
+            except Exception:
                 pass
         self._session = None
         self._started = False

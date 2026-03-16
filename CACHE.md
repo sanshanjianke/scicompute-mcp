@@ -5,7 +5,8 @@
 - Octave 后端已完成 ✅
 - oct2py 使用 git 版本（含 PR #384 修复）✅
 - sym 对象输出格式已优化 ✅
-- **进程清理已修复** ✅ (atexit + stop_all)
+- **进程清理已修复** ✅ (atexit + stop_all + waitpid)
+- **stop_backend 功能已测试** ✅
 - 代码已提交 ✅
 
 ## 重启后需要做的事
