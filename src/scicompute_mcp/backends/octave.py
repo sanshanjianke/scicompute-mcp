@@ -45,91 +45,12 @@ set(0, 'DefaultFigureVisible', 'off');
 set(0, 'DefaultFigurePaperPositionMode', 'auto');
 set(0, 'DefaultFigurePaperSize', [8, 6]);
 
-has_plot = false;
-original_plot = @plot;
-original_plot3 = @plot3;
-original_surf = @surf;
-original_mesh = @mesh;
-original_contour = @contour;
-original_imagesc = @imagesc;
-original_histogram = @histogram;
-original_bar = @bar;
-
-function plot_wrap(varargin)
-    global has_plot;
-    has_plot = true;
-    plot_result = original_plot(varargin{{:}});
-    print("{plot_file}", "-dpng", "-r150");
-endfunction
-
-function plot3_wrap(varargin)
-    global has_plot;
-    has_plot = true;
-    plot3_result = original_plot3(varargin{{:}});
-    print("{plot_file}", "-dpng", "-r150");
-endfunction
-
-function surf_wrap(varargin)
-    global has_plot;
-    has_plot = true;
-    surf_result = original_surf(varargin{{:}});
-    print("{plot_file}", "-dpng", "-r150");
-endfunction
-
-function mesh_wrap(varargin)
-    global has_plot;
-    has_plot = true;
-    mesh_result = original_mesh(varargin{{:}});
-    print("{plot_file}", "-dpng", "-r150");
-endfunction
-
-function contour_wrap(varargin)
-    global has_plot;
-    has_plot = true;
-    contour_result = original_contour(varargin{{:}});
-    print("{plot_file}", "-dpng", "-r150");
-endfunction
-
-function imagesc_wrap(varargin)
-    global has_plot;
-    has_plot = true;
-    imagesc_result = original_imagesc(varargin{{:}});
-    print("{plot_file}", "-dpng", "-r150");
-endfunction
-
-function histogram_wrap(varargin)
-    global has_plot;
-    has_plot = true;
-    histogram_result = original_histogram(varargin{{:}});
-    print("{plot_file}", "-dpng", "-r150");
-endfunction
-
-function bar_wrap(varargin)
-    global has_plot;
-    has_plot = true;
-    bar_result = original_bar(varargin{{:}});
-    print("{plot_file}", "-dpng", "-r150");
-endfunction
-
-function handle_graphics = figure_wrap(varargin)
-    global has_plot;
-    handle_graphics = figure(varargin{{:}});
-endfunction
-
-plot = @plot_wrap;
-plot3 = @plot3_wrap;
-surf = @surf_wrap;
-mesh = @mesh_wrap;
-contour = @contour_wrap;
-imagesc = @imagesc_wrap;
-histogram = @histogram_wrap;
-bar = @bar_wrap;
-figure = @figure_wrap;
-
 try
-    result = {code};
-    disp(result);
-    if has_plot
+    {code}
+    
+    figs = findall(0, 'Type', 'Figure');
+    if ~isempty(figs)
+        print(figs(1), "{plot_file}", "-dpng", "-r150");
         disp("__PLOT_GENERATED__");
     endif
 catch err
