@@ -11,6 +11,8 @@ requires-python = ">=3.10"
 dependencies = [
     "mcp>=1.0.0",
     "wolframclient>=1.4.0",
+    "oct2py @ git+https://github.com/blink1073/oct2py.git@main",
+    "sympy>=1.0.0",
 ]
 
 [project.scripts]
