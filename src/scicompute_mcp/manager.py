@@ -81,3 +81,38 @@ class BackendManager:
             if b._started:
                 b.reset()
         return {"success": True, "message": "Reset all backends"}
+    
+    def doc(self, symbol: str, backend: Optional[str] = None) -> Result:
+        selected, msg = self.select_backend(backend or "mathematica")
+        if not selected:
+            available = [b["name"] for b in self.list_available()]
+            return Result(
+                success=False,
+                content=[ErrorContent(message=f"{msg}. Available: {available}")]
+            )
+        
+        if not selected._started:
+            if not selected.start():
+                return Result(
+                    success=False,
+                    content=[ErrorContent(message=f"Failed to start {selected.name}")]
+                )
+        
+        doc_code = f'''Module[{{usage, opts, attrs, result}},
+            result = Quiet[Check[
+                usage = ToString[Information[{symbol}, "Usage"], OutputForm];
+                opts = ToString[Options[{symbol}], OutputForm];
+                attrs = ToString[Attributes[{symbol}], OutputForm];
+                If[usage === "Null" || StringQ[usage] === False,
+                    "Symbol '{symbol}' not found or has no documentation.",
+                    "=== {symbol} ===" <> "\\n\\n" <> 
+                    "USAGE:\\n" <> usage <> "\\n\\n" <>
+                    "ATTRIBUTES: " <> attrs <> "\\n\\n" <>
+                    "OPTIONS:\\n" <> opts
+                ],
+                "Symbol '{symbol}' not found."
+            ]];
+            result
+        ]'''
+        
+        return selected.evaluate(doc_code)

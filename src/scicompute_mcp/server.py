@@ -54,6 +54,24 @@ async def list_tools() -> list[Tool]:
                     }
                 }
             }
+        ),
+        Tool(
+            name="doc",
+            description="Query documentation for a symbol. Returns usage information and options. Useful when you need to understand how to use a function.",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "symbol": {
+                        "type": "string",
+                        "description": "Symbol name to query (e.g., 'Plot', 'NDSolve', 'Import')"
+                    },
+                    "backend": {
+                        "type": "string",
+                        "description": "Backend name (default: mathematica)"
+                    }
+                },
+                "required": ["symbol"]
+            }
         )
     ]
 
@@ -100,6 +118,29 @@ async def call_tool(name: str, arguments: dict) -> list:
         backend = arguments.get("backend")
         result = manager.reset(backend)
         return [MCPTextContent(type="text", text=json.dumps(result))]
+    
+    elif name == "doc":
+        symbol = arguments.get("symbol", "")
+        backend = arguments.get("backend", "mathematica")
+        
+        result = manager.doc(symbol, backend)
+        
+        content = []
+        for item in result.content:
+            if isinstance(item, dict):
+                item_type = item.get("type")
+                if item_type == "text":
+                    content.append(MCPTextContent(type="text", text=item.get("text", "")))
+                elif item_type == "error":
+                    content.append(MCPTextContent(type="text", text=f"Error: {item.get('message', '')}"))
+            else:
+                if hasattr(item, 'type'):
+                    if item.type == "text":
+                        content.append(MCPTextContent(type="text", text=item.text))
+                    elif item.type == "error":
+                        content.append(MCPTextContent(type="text", text=f"Error: {item.message}"))
+        
+        return content
     
     return [MCPTextContent(type="text", text=f"Unknown tool: {name}")]
 
