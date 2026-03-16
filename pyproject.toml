@@ -1,0 +1,20 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "scicompute-mcp"
+version = "0.1.0"
+description = "MCP server for scientific computing with multiple backends"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "mcp>=1.0.0",
+    "wolframclient>=1.4.0",
+]
+
+[project.scripts]
+scicompute-mcp = "scicompute_mcp.server:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/scicompute_mcp"]
