@@ -120,7 +120,7 @@ class ErrorContent:
 
 ## MCP Tools 定义
 
-精简为 3 个工具，减少 token 占用：
+精简为 4 个工具，减少 token 占用：
 
 ### 1. compute
 
@@ -167,6 +167,29 @@ class ErrorContent:
 - `backend` (string, optional): 后端名称，不填则重置全部
 
 **返回：** 操作结果
+
+### 4. doc
+
+查询符号的文档信息。当 AI 遇到不熟悉的函数时，可主动查询用法。
+
+**参数：**
+- `symbol` (string, required): 符号名称（如 "Plot", "NDSolve"）
+- `backend` (string, optional): 后端名称，默认 "mathematica"
+
+**返回：**
+- USAGE: 函数用法说明
+- ATTRIBUTES: 属性（HoldAll, Protected 等）
+- OPTIONS: 可用选项及默认值
+
+**示例：**
+```json
+{"name": "doc", "arguments": {"symbol": "Plot3D"}}
+```
+
+**使用场景：**
+- AI 不确定函数用法时主动查询
+- 查看函数有哪些可用选项
+- 了解函数的调用签名
 
 ## Mathematica 后端实现
 
@@ -274,14 +297,15 @@ scicompute_mcp/
 
 ## 开发计划
 
-### Phase 1: 框架 + Mathematica（当前）
+### Phase 1: 框架 + Mathematica ✅
 - [x] 设计文档
-- [ ] 项目骨架
-- [ ] Backend 基类
-- [ ] BackendManager
-- [ ] Mathematica 后端
-- [ ] MCP Server 入口
-- [ ] 测试
+- [x] 项目骨架
+- [x] Backend 基类
+- [x] BackendManager
+- [x] Mathematica 后端
+- [x] MCP Server 入口
+- [x] 文档查询工具 (doc)
+- [x] 基础测试
 
 ### Phase 2: Python 生态
 - [ ] SymPy 后端
@@ -296,4 +320,4 @@ scicompute_mcp/
 ### Phase 4: 优化与扩展
 - [ ] 性能优化
 - [ ] 更多后端支持
-- [ ] 文档与示例
+- [ ] 向量数据库文档检索（可选）
