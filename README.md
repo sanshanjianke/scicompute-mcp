@@ -15,6 +15,7 @@ MCP server for scientific computing with multiple backends. Provides AI coding a
 | Backend | Status | Capabilities |
 |---------|--------|--------------|
 | Mathematica | ✅ Ready | symbolic, numeric, plot, image, audio |
+| Octave | ✅ Ready | numeric, plot |
 | MATLAB | 🔲 Planned | numeric, plot |
 | SymPy | 🔲 Planned | symbolic |
 | Julia | 🔲 Planned | numeric, plot |
@@ -92,6 +93,7 @@ Ask your AI assistant:
 
 - Python 3.10+
 - For Mathematica backend: Wolfram Mathematica with `wolframclient` Python package
+- For Octave backend: GNU Octave with gnuplot (for plotting)
 
 ## License
 

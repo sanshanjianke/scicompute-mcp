@@ -45,10 +45,10 @@
 │  │  - 统一返回格式                             │   │
 │  └─────────────────────────────────────────────┘   │
 │          │        │        │        │              │
-│     ┌────┴───┐ ┌──┴───┐ ┌──┴───┐ ┌──┴────┐        │
-│     │Mathematica│ │MATLAB│ │SymPy│ │Julia │ ...    │
+│     ┌────┴───┐ ┌──┴───┐ ┌──┴───┐ ┌──┴────┐ ┌──────┐
+│     │Mathematica│ │Octave│ │SymPy│ │Julia │ │MATLAB │ ...
 │     │ Backend │ │Backend│ │Backend│ │Backend│       │
-│     └────────┘ └──────┘ └──────┘ └──────┘         │
+│     └────────┘ └──────┘ └──────┘ └──────┘ └──────┘
 └─────────────────────────────────────────────────────┘
 ```
 
@@ -287,9 +287,10 @@ scicompute_mcp/
         ├── manager.py          # BackendManager
         ├── backends/
         │   ├── __init__.py
-        │   ├── base.py         # Backend 基类
-        │   ├── mathematica.py  # Mathematica 后端
-        │   └── ...             # 其他后端（后续添加）
+│         ├── base.py         # Backend 基类
+│         ├── mathematica.py  # Mathematica 后端
+│         ├── octave.py       # Octave 后端
+│         └── ...             # 其他后端（后续添加）
         └── utils/
             ├── __init__.py
             └── output.py       # 输出类型检测与转换
@@ -305,6 +306,12 @@ scicompute_mcp/
 - [x] Mathematica 后端
 - [x] MCP Server 入口
 - [x] 文档查询工具 (doc)
+- [x] 基础测试
+
+### Phase 1.5: Octave 后端 ✅
+- [x] Octave 后端实现
+- [x] 绘图函数支持 (plot, plot3, surf, mesh, contour, imagesc, histogram, bar)
+- [x] 图片输出 (PNG)
 - [x] 基础测试
 
 ### Phase 2: Python 生态

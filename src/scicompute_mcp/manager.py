@@ -3,6 +3,7 @@ from typing import Optional
 
 from .backends.base import ComputeBackend, Result, ErrorContent
 from .backends.mathematica import MathematicaBackend
+from .backends.octave import OctaveBackend
 
 
 class BackendManager:
@@ -15,13 +16,14 @@ class BackendManager:
     
     def _register_default_backends(self):
         self._backends["mathematica"] = MathematicaBackend()
+        self._backends["octave"] = OctaveBackend()
     
     def _load_priority(self):
         env_priority = os.environ.get("SCICOMPUTE_PRIORITY", "")
         if env_priority:
             self._priority = [p.strip() for p in env_priority.split(",")]
         else:
-            self._priority = ["mathematica"]
+            self._priority = ["mathematica", "octave"]
     
     def list_available(self) -> list[dict]:
         result = []
@@ -83,7 +85,7 @@ class BackendManager:
         return {"success": True, "message": "Reset all backends"}
     
     def doc(self, symbol: str, backend: Optional[str] = None) -> Result:
-        selected, msg = self.select_backend(backend or "mathematica")
+        selected, msg = self.select_backend(backend)
         if not selected:
             available = [b["name"] for b in self.list_available()]
             return Result(
@@ -98,21 +100,29 @@ class BackendManager:
                     content=[ErrorContent(message=f"Failed to start {selected.name}")]
                 )
         
-        doc_code = f'''Module[{{usage, opts, attrs, result}},
-            result = Quiet[Check[
-                usage = ToString[Information[{symbol}, "Usage"], OutputForm];
-                opts = ToString[Options[{symbol}], OutputForm];
-                attrs = ToString[Attributes[{symbol}], OutputForm];
-                If[usage === "Null" || StringQ[usage] === False,
-                    "Symbol '{symbol}' not found or has no documentation.",
-                    "=== {symbol} ===" <> "\\n\\n" <> 
-                    "USAGE:\\n" <> usage <> "\\n\\n" <>
-                    "ATTRIBUTES: " <> attrs <> "\\n\\n" <>
-                    "OPTIONS:\\n" <> opts
-                ],
-                "Symbol '{symbol}' not found."
-            ]];
-            result
-        ]'''
+        if selected.name == "mathematica":
+            doc_code = f'''Module[{{usage, opts, attrs, result}},
+                result = Quiet[Check[
+                    usage = ToString[Information[{symbol}, "Usage"], OutputForm];
+                    opts = ToString[Options[{symbol}], OutputForm];
+                    attrs = ToString[Attributes[{symbol}], OutputForm];
+                    If[usage === "Null" || StringQ[usage] === False,
+                        "Symbol '{symbol}' not found or has no documentation.",
+                        "=== {symbol} ===" <> "\\n\\n" <> 
+                        "USAGE:\\n" <> usage <> "\\n\\n" <>
+                        "ATTRIBUTES: " <> attrs <> "\\n\\n" <>
+                        "OPTIONS:\\n" <> opts
+                    ],
+                    "Symbol '{symbol}' not found."
+                ]];
+                result
+            ]'''
+        elif selected.name == "octave":
+            doc_code = f'help {symbol}'
+        else:
+            return Result(
+                success=False,
+                content=[ErrorContent(message=f"doc not supported for backend: {selected.name}")]
+            )
         
         return selected.evaluate(doc_code)

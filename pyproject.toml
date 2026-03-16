@@ -16,5 +16,11 @@ dependencies = [
 [project.scripts]
 scicompute-mcp = "scicompute_mcp.server:main"
 
+[project.optional-dependencies]
+test = ["pytest>=7.0.0"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
 [tool.hatch.build.targets.wheel]
 packages = ["src/scicompute_mcp"]
