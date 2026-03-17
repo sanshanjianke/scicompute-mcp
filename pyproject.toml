@@ -9,13 +9,13 @@ description = "MCP server for scientific computing with multiple backends"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
-    # MCP 核心
+    # MCP core
     "mcp>=1.0.0",
-    # Mathematica 后端
+    # Mathematica backend
     "wolframclient>=1.4.0",
-    # Octave 后端 (需要 GitHub 版本以支持较新 Python)
+    # Octave backend (requires GitHub version for newer Python support)
     "oct2py @ git+https://github.com/blink1073/oct2py.git@main",
-    # Python 科学计算后端
+    # Python scientific computing backend
     "numpy>=2.0.0",
     "scipy>=1.10.0",
     "sympy>=1.12.0",
