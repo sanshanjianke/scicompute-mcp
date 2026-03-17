@@ -6,6 +6,7 @@ from .backends.mathematica import MathematicaBackend
 from .backends.octave import OctaveBackend
 from .backends.maxima import MaximaBackend
 from .backends.py_scientific import PyScientificBackend
+from .backends.r import RBackend
 
 
 class BackendManager:
@@ -21,6 +22,7 @@ class BackendManager:
         self._backend_classes["octave"] = OctaveBackend
         self._backend_classes["maxima"] = MaximaBackend
         self._backend_classes["py_scientific"] = PyScientificBackend
+        self._backend_classes["r"] = RBackend
 
     def _load_priority(self):
         env_priority = os.environ.get("SCICOMPUTE_PRIORITY", "")
@@ -125,6 +127,8 @@ class BackendManager:
             doc_code = f'? {symbol}'
         elif selected.name == "py_scientific":
             doc_code = f'import inspect; print(inspect.getdoc({symbol}))'
+        elif selected.name == "r":
+            doc_code = f'?{symbol}'
         else:
             return Result(
                 success=False,
