@@ -28,6 +28,30 @@ MCP server for scientific computing with multiple backends. Provides AI coding a
 
 ## Installation
 
+### Quick Start (Recommended)
+
+```bash
+# Install and run with uvx (auto-manages environment)
+uvx scicompute-mcp
+
+# Or install with pip
+pip install scicompute-mcp
+scicompute-mcp
+```
+
+### Install with Optional Backends
+
+```bash
+# With Mathematica support
+pip install scicompute-mcp[mathematica]
+
+# With Octave support
+pip install scicompute-mcp[octave]
+
+# With all backends
+pip install scicompute-mcp[all]
+```
+
 ### Environment Architecture
 
 ```
@@ -55,23 +79,9 @@ MCP server for scientific computing with multiple backends. Provides AI coding a
 - Each backend (except py_scientific) runs as independent process, not sharing Python environment
 - SageMath requires separate conda environment (Python < 3.13)
 
-### Step 1: Install MCP Server
+### Step 1: Install Computing Backends
 
-```bash
-# Method A: Using venv (recommended)
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -e .
-
-# Method B: Using conda
-conda create -n scicompute python=3.12 -y
-conda activate scicompute
-pip install -e .
-```
-
-### Step 2: Install Computing Backends
-
-Install as needed, not all are required:
+Install the computing backends you need (not all required):
 
 #### Python Scientific Backend
 
@@ -133,21 +143,7 @@ brew install octave gnuplot
 export MATHEMATICA_KERNEL_PATH="/usr/local/Wolfram/Wolfram/14.3/Executables/WolframKernel"
 ```
 
-### Step 3: Configure MCP Client
-
-Create `.mcp.json` configuration file (in project root or home directory):
-
-```json
-{
-  "mcpServers": {
-    "scicompute": {
-      "command": "/path/to/.venv/bin/python",
-      "args": ["-m", "scicompute_mcp.server"],
-      "cwd": "/path/to/scicompute_mcp"
-    }
-  }
-}
-```
+## Configuration
 
 ### Environment Variables
 
@@ -157,16 +153,14 @@ Create `.mcp.json` configuration file (in project root or home directory):
 | `MATHEMATICA_KERNEL_PATH` | WolframKernel path | `/usr/local/Wolfram/Wolfram/14.3/Executables/WolframKernel` |
 | `SCICOMPUTE_PRIORITY` | Backend priority | `mathematica,sage,py_scientific` |
 
-## Configuration
-
 ### Claude Code (`.mcp.json`)
 
 ```json
 {
   "mcpServers": {
     "scicompute": {
-      "command": "/path/to/miniconda3/envs/scicompute/bin/python",
-      "args": ["-m", "scicompute_mcp.server"]
+      "command": "uvx",
+      "args": ["scicompute-mcp"]
     }
   }
 }
@@ -178,8 +172,8 @@ Create `.mcp.json` configuration file (in project root or home directory):
 {
   "mcpServers": {
     "scicompute": {
-      "command": "/path/to/miniconda3/envs/scicompute/bin/python",
-      "args": ["-m", "scicompute_mcp.server"]
+      "command": "uvx",
+      "args": ["scicompute-mcp"]
     }
   }
 }
@@ -192,7 +186,22 @@ Create `.mcp.json` configuration file (in project root or home directory):
   "mcpServers": {
     "scicompute": {
       "type": "stdio",
-      "command": "/path/to/miniconda3/envs/scicompute/bin/python",
+      "command": "uvx",
+      "args": ["scicompute-mcp"]
+    }
+  }
+}
+```
+
+### Local Development
+
+For development or if you want to use a local installation:
+
+```json
+{
+  "mcpServers": {
+    "scicompute": {
+      "command": "/path/to/.venv/bin/python",
       "args": ["-m", "scicompute_mcp.server"]
     }
   }

@@ -137,3 +137,33 @@ Planned to add MATLAB and Maple backend support, but software not yet installed.
 - [ ] Implement MATLAB backend (similar to Octave but using official API)
 - [ ] Implement Maple backend (symbolic computation)
 - [ ] Testing and documentation
+
+---
+
+## Octave Backend oct2py Dependency
+
+**Status**: Known Limitation
+**Priority**: Low
+**Reported**: 2026-03-18
+
+### Problem
+
+For PyPI compatibility, `oct2py` dependency uses PyPI version (5.8.0) instead of GitHub version. The GitHub version has bug fixes not yet released to PyPI.
+
+### Changes Made
+
+- Moved `oct2py` from required to optional dependency: `pip install scicompute-mcp[octave]`
+- Uses PyPI version `oct2py>=5.8.0` instead of `git+https://github.com/blink1073/oct2py.git@main`
+
+### Workaround
+
+If you encounter issues with PyPI version:
+
+```bash
+pip uninstall oct2py
+pip install git+https://github.com/blink1073/oct2py.git@main
+```
+
+### Related
+
+- [blink1073/oct2py](https://github.com/blink1073/oct2py) - GitHub repository

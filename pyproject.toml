@@ -8,14 +8,24 @@ version = "0.1.0"
 description = "MCP server for scientific computing with multiple backends"
 readme = "README.md"
 requires-python = ">=3.10"
+license = "MIT"
+authors = [
+    {name = "Your Name", email = "your@email.com"}
+]
+keywords = ["mcp", "scientific-computing", "mathematica", "sagemath", "octave", "r"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Mathematics",
+]
 dependencies = [
-    # MCP core
     "mcp>=1.0.0",
-    # Mathematica backend
-    "wolframclient>=1.4.0",
-    # Octave backend (requires GitHub version for newer Python support)
-    "oct2py @ git+https://github.com/blink1073/oct2py.git@main",
-    # Python scientific computing backend
     "numpy>=2.0.0",
     "scipy>=1.10.0",
     "sympy>=1.12.0",
@@ -23,15 +33,26 @@ dependencies = [
     "pandas>=2.0.0",
 ]
 
-[project.scripts]
-scicompute-mcp = "scicompute_mcp.server:main"
-
 [project.optional-dependencies]
+mathematica = ["wolframclient>=1.4.0"]
+octave = ["oct2py>=5.8.0"]
+all = [
+    "wolframclient>=1.4.0",
+    "oct2py>=5.8.0",
+]
 test = ["pytest>=7.0.0"]
 dev = [
     "pytest>=7.0.0",
     "ipython>=8.0.0",
 ]
+
+[project.urls]
+Homepage = "https://github.com/yourusername/scicompute-mcp"
+Repository = "https://github.com/yourusername/scicompute-mcp"
+Issues = "https://github.com/yourusername/scicompute-mcp/issues"
+
+[project.scripts]
+scicompute-mcp = "scicompute_mcp.server:main"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
