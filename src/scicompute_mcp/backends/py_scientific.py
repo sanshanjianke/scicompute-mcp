@@ -16,9 +16,9 @@ _globals: Optional[dict] = None
 _lock = threading.Lock()
 
 
-class SymPyBackend(ComputeBackend):
-    name = "sympy"
-    description = "Python Scientific Computing - SymPy (symbolic), NumPy/SciPy (numeric), Matplotlib (plot)"
+class PyScientificBackend(ComputeBackend):
+    name = "py_scientific"
+    description = "Python Scientific Computing - NumPy, SciPy, SymPy, Matplotlib, Pandas"
     capabilities = ["symbolic", "numeric", "plot"]
 
     @classmethod

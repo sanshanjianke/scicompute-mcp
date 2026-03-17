@@ -5,7 +5,7 @@ from .backends.base import ComputeBackend, Result, ErrorContent
 from .backends.mathematica import MathematicaBackend
 from .backends.octave import OctaveBackend
 from .backends.maxima import MaximaBackend
-from .backends.sympy import SymPyBackend
+from .backends.py_scientific import PyScientificBackend
 
 
 class BackendManager:
@@ -20,14 +20,14 @@ class BackendManager:
         self._backend_classes["mathematica"] = MathematicaBackend
         self._backend_classes["octave"] = OctaveBackend
         self._backend_classes["maxima"] = MaximaBackend
-        self._backend_classes["sympy"] = SymPyBackend
+        self._backend_classes["py_scientific"] = PyScientificBackend
 
     def _load_priority(self):
         env_priority = os.environ.get("SCICOMPUTE_PRIORITY", "")
         if env_priority:
             self._priority = [p.strip() for p in env_priority.split(",")]
         else:
-            self._priority = ["mathematica", "maxima", "sympy", "octave"]
+            self._priority = ["mathematica", "maxima", "py_scientific", "octave"]
 
     def list_available(self) -> list[dict]:
         result = []
@@ -123,7 +123,7 @@ class BackendManager:
             doc_code = f'ans = help("{symbol}"); disp(ans)'
         elif selected.name == "maxima":
             doc_code = f'? {symbol}'
-        elif selected.name == "sympy":
+        elif selected.name == "py_scientific":
             doc_code = f'import inspect; print(inspect.getdoc({symbol}))'
         else:
             return Result(
