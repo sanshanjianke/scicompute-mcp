@@ -1,6 +1,7 @@
 import asyncio
 import atexit
 import json
+import signal
 import sys
 
 from mcp.server import Server
@@ -12,11 +13,30 @@ from .manager import BackendManager
 
 server = Server("scicompute")
 manager = BackendManager()
+_shutdown_requested = False
+
+
+def _cleanup():
+    global _shutdown_requested
+    if _shutdown_requested:
+        return
+    _shutdown_requested = True
+    manager.stop_all()
 
 
 @atexit.register
-def _cleanup():
-    manager.stop_all()
+def _atexit_cleanup():
+    _cleanup()
+
+
+def _signal_handler(signum, frame):
+    _cleanup()
+    sys.exit(0)
+
+
+signal.signal(signal.SIGTERM, _signal_handler)
+signal.signal(signal.SIGINT, _signal_handler)
+signal.signal(signal.SIGHUP, _signal_handler)
 
 
 @server.list_tools()
@@ -49,27 +69,14 @@ async def list_tools() -> list[Tool]:
             }
         ),
         Tool(
-            name="reset",
-            description="Reset backend state, clear all variables",
+            name="stop",
+            description="Stop backend to clear variables and free memory. Use when you want a clean slate or the backend is misbehaving. The backend will restart automatically when needed.",
             inputSchema={
                 "type": "object",
                 "properties": {
                     "backend": {
                         "type": "string",
-                        "description": "Backend name to reset. Leave empty to reset all."
-                    }
-                }
-            }
-        ),
-        Tool(
-            name="stop_backend",
-            description="Stop and close a backend to free memory. Use this when you no longer need a backend or want to start fresh. The backend can be restarted later if needed.",
-            inputSchema={
-                "type": "object",
-                "properties": {
-                    "backend": {
-                        "type": "string",
-                        "description": "Backend name to stop (e.g., 'octave', 'mathematica'). Leave empty to stop all."
+                        "description": "Backend name (e.g., 'octave', 'mathematica'). Leave empty to stop all."
                     }
                 }
             }
@@ -133,16 +140,11 @@ async def call_tool(name: str, arguments: dict) -> list:
         text = json.dumps(backends, indent=2)
         return [MCPTextContent(type="text", text=text)]
     
-    elif name == "reset":
-        backend = arguments.get("backend")
-        result = manager.reset(backend)
-        return [MCPTextContent(type="text", text=json.dumps(result))]
-    
-    elif name == "stop_backend":
+    elif name == "stop":
         backend = arguments.get("backend")
         result = manager.stop(backend)
         return [MCPTextContent(type="text", text=json.dumps(result))]
-    
+
     elif name == "doc":
         symbol = arguments.get("symbol", "")
         backend = arguments.get("backend", "mathematica")

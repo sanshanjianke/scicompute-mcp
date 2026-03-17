@@ -4,20 +4,22 @@ MCP server for scientific computing with multiple backends. Provides AI coding a
 
 ## Features
 
-- Multiple computing backends (Mathematica, Octave)
+- Multiple computing backends (Mathematica, Octave, Maxima, SymPy)
 - Image output support (plots, graphics)
 - Automatic backend selection
 - Persistent session state (variables persist across calls)
 - Documentation query for unknown symbols
+- Multi-platform support (Claude Code, Claude Desktop, OpenCode/Crush)
 
 ## Supported Backends
 
 | Backend | Status | Capabilities |
 |---------|--------|--------------|
 | Mathematica | ✅ Ready | symbolic, numeric, plot, image, audio |
-| Octave | ✅ Ready | numeric, plot, symbolic |
+| Octave | ✅ Ready | numeric, plot |
+| Maxima | ✅ Ready | symbolic, numeric, plot |
+| SymPy | 🚧 In Progress | symbolic, numeric, plot |
 | MATLAB | 🔲 Planned | numeric, plot |
-| SymPy | 🔲 Planned | symbolic |
 | Julia | 🔲 Planned | numeric, plot |
 
 ## Installation
@@ -33,27 +35,25 @@ pip install -e .
 
 ### Backend Requirements
 
+#### Maxima Backend
+
+```bash
+# Ubuntu/Debian
+sudo apt install maxima gnuplot
+
+# macOS
+brew install maxima gnuplot
+```
+
 #### Octave Backend
 
-1. Install GNU Octave:
-   ```bash
-   # Ubuntu/Debian
-   sudo apt install octave octave-symbolic gnuplot
-   
-   # macOS
-   brew install octave gnuplot
-   
-   # Windows: download from https://octave.org/download
-   ```
+```bash
+# Ubuntu/Debian
+sudo apt install octave gnuplot
 
-2. Install symbolic package (for symbolic computation):
-   ```bash
-   octave --eval "pkg install -forge symbolic"
-   ```
-
-3. oct2py dependency:
-   - Uses git version with bug fixes for symbolic objects
-   - Will switch to PyPI once oct2py releases a new version
+# macOS
+brew install octave gnuplot
+```
 
 #### Mathematica Backend
 
@@ -62,19 +62,66 @@ pip install -e .
 
 ## Configuration
 
-Add to your `opencode.json`:
+### Claude Code (`.mcp.json`)
 
 ```json
 {
-  "mcp": {
+  "mcpServers": {
     "scicompute": {
-      "type": "local",
-      "command": ["/path/to/.venv/bin/python", "-m", "scicompute_mcp.server"],
-      "enabled": true
+      "command": "/path/to/.venv/bin/python",
+      "args": ["-m", "scicompute_mcp.server"]
     }
   }
 }
 ```
+
+### Claude Desktop (`claude_desktop_config.json`)
+
+```json
+{
+  "mcpServers": {
+    "scicompute": {
+      "command": "/path/to/.venv/bin/python",
+      "args": ["-m", "scicompute_mcp.server"]
+    }
+  }
+}
+```
+
+### OpenCode / Crush (`.opencode.json`)
+
+```json
+{
+  "mcpServers": {
+    "scicompute": {
+      "type": "stdio",
+      "command": "/path/to/.venv/bin/python",
+      "args": ["-m", "scicompute_mcp.server"]
+    }
+  }
+}
+```
+
+## Multi-Platform Support
+
+This project supports multiple AI assistant platforms. Configuration templates are provided in the `configs/` directory:
+
+| File | Platform |
+|------|----------|
+| `configs/claude-code.json` | Claude Code |
+| `configs/claude-desktop.json` | Claude Desktop |
+| `configs/opencode.json` | OpenCode / Crush |
+
+### Custom Prompts / Skills
+
+Each platform has its own way to provide custom instructions:
+
+| Platform | Directory | Format |
+|----------|-----------|--------|
+| Claude Code | `.claude/skills/*.md` | Markdown |
+| OpenCode / Crush | `.opencode/commands/*.md` | Markdown |
+
+This project includes pre-made skill files for both platforms to help the AI assistant use the computing backends effectively.
 
 ## Tools
 
@@ -86,8 +133,9 @@ Execute scientific computing code.
 # Plot with Octave
 compute("x = 0:0.1:10; y = sin(x); plot(x, y)", "octave")
 
-# Symbolic computation with Octave
-compute("pkg load symbolic; syms x; diff(x^2, x)", "octave")
+# Symbolic computation with Maxima
+compute("integrate(sin(x), x)", "maxima")
+compute("diff(x^3 * exp(x), x)", "maxima")
 
 # Mathematica
 compute("Plot[Sin[x], {x, 0, 2 Pi}]", "mathematica")
@@ -102,13 +150,17 @@ List all available backends and their capabilities.
 
 Reset backend state, clear all variables.
 
+### stop_backend(backend?)
+
+Stop and close a backend to free memory. The backend can be restarted when needed.
+
 ### doc(symbol, backend?)
 
 Query documentation for a symbol.
 
 ```python
 doc("Plot3D", "mathematica")  # Mathematica usage
-doc("eig", "octave")          # Octave usage
+doc("integrate", "maxima")     # Maxima usage
 ```
 
 ## Usage Examples
@@ -125,11 +177,17 @@ Ask your AI assistant:
 查一下 NDSolve 的用法
 ```
 
+## Documentation
+
+- `docs/maxima.md` - Maxima 使用指南
+- `docs/octave.md` - Octave 使用指南
+- `DESIGN.md` - 项目设计文档
+
 ## Requirements
 
 - Python 3.10+
-- Git (for oct2py git dependency)
-- For Octave backend: GNU Octave + gnuplot + symbolic package
+- For Maxima backend: Maxima + gnuplot
+- For Octave backend: GNU Octave + gnuplot
 - For Mathematica backend: Wolfram Mathematica
 
 ## License

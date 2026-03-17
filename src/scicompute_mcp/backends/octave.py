@@ -2,52 +2,53 @@ import base64
 import os
 import signal
 import tempfile
+import threading
 from typing import Optional
 
-from oct2py import Oct2Py, Oct2PyError
-import numpy as np
-
 from .base import ComputeBackend, Result, TextContent, ImageContent, ErrorContent
+
+# 全局单例 session
+_octave_session = None
+_octave_lock = threading.Lock()
 
 
 class OctaveBackend(ComputeBackend):
     name = "octave"
     description = "GNU Octave - MATLAB-compatible numerical computation"
     capabilities = ["numeric", "plot"]
-    
+
     def __init__(self):
-        self._session: Optional[Oct2Py] = None
-        self._started = False
-    
-    def is_available(self) -> bool:
-        try:
-            import oct2py
-            return True
-        except ImportError:
-            return False
-    
+        pass  # 使用全局单例，无需实例变量
+
+    @classmethod
+    def is_available(cls) -> bool:
+        """Check if octave command is available."""
+        import shutil
+        return shutil.which('octave') is not None
+
     def start(self) -> bool:
-        if self._started:
-            return True
-        
-        try:
-            self._session = Oct2Py()
-            self._session.eval("graphics_toolkit('gnuplot')")
-            self._session.eval("set(0, 'DefaultFigureVisible', 'off')")
-            self._started = True
-            return True
-        except Exception as e:
-            print(f"Failed to start Octave: {e}", file=__import__("sys").stderr)
-            return False
-    
+        global _octave_session
+        with _octave_lock:
+            if _octave_session is not None:
+                return True
+
+            try:
+                # 延迟导入，只在需要时才触发
+                import oct2py
+                _octave_session = oct2py.octave
+                _octave_session.eval("graphics_toolkit('gnuplot')")
+                _octave_session.eval("set(0, 'DefaultFigureVisible', 'off')")
+                return True
+            except Exception as e:
+                print(f"Failed to start Octave: {e}", file=__import__("sys").stderr)
+                return False
+
     def evaluate(self, code: str, timeout: float = 30.0) -> Result:
-        if not self._started or self._session is None:
-            if not self.start():
-                return Result(success=False, content=[ErrorContent(message="Octave not available")])
-        
-        session = self._session
-        if session is None:
-            return Result(success=False, content=[ErrorContent(message="Octave session not initialized")])
+        # start() 应该由 manager 调用
+        if _octave_session is None:
+            return Result(success=False, content=[ErrorContent(message="Octave not started")])
+
+        session = _octave_session
         
         temp_path = ""
         temp_file = None
@@ -78,16 +79,16 @@ end_try_catch
 '''
             
             result = session.eval(wrapped_code, timeout=timeout)
-            
+
             if os.path.exists(temp_path) and os.path.getsize(temp_path) > 0:
                 with open(temp_path, "rb") as f:
                     image_data = base64.b64encode(f.read()).decode("utf-8")
                 os.unlink(temp_path)
                 return Result(success=True, content=[ImageContent(data=image_data, mimeType="image/png")])
-            
+
             return self._process_result(result)
-            
-        except Oct2PyError as e:
+
+        except Exception as e:
             if temp_file and os.path.exists(temp_path):
                 os.unlink(temp_path)
             error_msg = str(e)
@@ -95,23 +96,21 @@ end_try_catch
                 lines = error_msg.split('\n')
                 error_msg = '\n'.join(lines[1:]) if len(lines) > 1 else error_msg
             return Result(success=False, content=[ErrorContent(message=error_msg)])
-        except Exception as e:
-            if temp_file and os.path.exists(temp_path):
-                os.unlink(temp_path)
-            return Result(success=False, content=[ErrorContent(message=str(e))])
-    
+
     def _process_result(self, result) -> Result:
+        import numpy as np
+
         if result is None:
             return Result(success=True, content=[TextContent(text="(no output)")])
-        
+
         if isinstance(result, str):
             text = result.strip()
             text = text.replace("__PLOT_GENERATED__", "").strip()
             return Result(success=True, content=[TextContent(text=text if text else "(no output)")])
-        
+
         if isinstance(result, (int, float)):
             return Result(success=True, content=[TextContent(text=str(result))])
-        
+
         if isinstance(result, np.ndarray):
             text = self._format_array(result)
             return Result(success=True, content=[TextContent(text=text)])
@@ -131,7 +130,7 @@ end_try_catch
         
         return Result(success=True, content=[TextContent(text=str(result))])
     
-    def _format_array(self, arr: np.ndarray) -> str:
+    def _format_array(self, arr) -> str:
         if arr.ndim == 1:
             return "  ".join(self._format_number(x) for x in arr)
         elif arr.ndim == 2:
@@ -153,23 +152,23 @@ end_try_catch
         return str(x)
     
     def reset(self) -> None:
-        if self._session:
+        global _octave_session
+        if _octave_session:
             try:
-                self._session.eval("clear all; close all;")
+                _octave_session.eval("clear all; close all;")
             except:
                 pass
-    
+
     def stop(self) -> None:
-        if self._session:
+        global _octave_session
+        with _octave_lock:
+            if _octave_session is None:
+                return
+
             try:
-                pid = self._session._engine.repl.pid if self._session._engine else None
-                self._session.exit()
-                if pid:
-                    try:
-                        os.waitpid(pid, os.WNOHANG)
-                    except ChildProcessError:
-                        pass
+                # restart 会清理变量并保持 session 可用
+                _octave_session.restart()
+                _octave_session.eval("graphics_toolkit('gnuplot')")
+                _octave_session.eval("set(0, 'DefaultFigureVisible', 'off')")
             except Exception:
                 pass
-        self._session = None
-        self._started = False

@@ -1,58 +1,59 @@
 import os
-from typing import Optional
+from typing import Optional, Type
 
 from .backends.base import ComputeBackend, Result, ErrorContent
 from .backends.mathematica import MathematicaBackend
 from .backends.octave import OctaveBackend
+from .backends.maxima import MaximaBackend
+from .backends.sympy import SymPyBackend
 
 
 class BackendManager:
     def __init__(self):
-        self._backends: dict[str, ComputeBackend] = {}
+        self._backend_classes: dict[str, Type[ComputeBackend]] = {}
         self._priority: list[str] = []
-        
-        self._register_default_backends()
+
+        self._register_backend_classes()
         self._load_priority()
-    
-    def _register_default_backends(self):
-        self._backends["mathematica"] = MathematicaBackend()
-        self._backends["octave"] = OctaveBackend()
-    
+
+    def _register_backend_classes(self):
+        self._backend_classes["mathematica"] = MathematicaBackend
+        self._backend_classes["octave"] = OctaveBackend
+        self._backend_classes["maxima"] = MaximaBackend
+        self._backend_classes["sympy"] = SymPyBackend
+
     def _load_priority(self):
         env_priority = os.environ.get("SCICOMPUTE_PRIORITY", "")
         if env_priority:
             self._priority = [p.strip() for p in env_priority.split(",")]
         else:
-            self._priority = ["mathematica", "octave"]
-    
+            self._priority = ["mathematica", "maxima", "sympy", "octave"]
+
     def list_available(self) -> list[dict]:
         result = []
-        for name, backend in self._backends.items():
-            if backend.is_available():
+        for name, backend_cls in self._backend_classes.items():
+            if backend_cls.is_available():
                 result.append({
-                    "name": backend.name,
-                    "description": backend.description,
-                    "capabilities": backend.capabilities,
+                    "name": backend_cls.name,
+                    "description": backend_cls.description,
+                    "capabilities": backend_cls.capabilities,
                 })
         return result
-    
-    def get_backend(self, name: str) -> Optional[ComputeBackend]:
-        return self._backends.get(name)
-    
+
     def select_backend(self, name: Optional[str] = None) -> tuple[Optional[ComputeBackend], str]:
         if name:
-            backend = self._backends.get(name)
-            if backend and backend.is_available():
-                return backend, name
+            backend_cls = self._backend_classes.get(name)
+            if backend_cls and backend_cls.is_available():
+                return backend_cls(), name
             return None, f"Backend '{name}' not available"
-        
+
         for backend_name in self._priority:
-            backend = self._backends.get(backend_name)
-            if backend and backend.is_available():
-                return backend, backend_name
-        
+            backend_cls = self._backend_classes.get(backend_name)
+            if backend_cls and backend_cls.is_available():
+                return backend_cls(), backend_name
+
         return None, "No available backends"
-    
+
     def compute(self, code: str, backend: Optional[str] = None, timeout: float = 30.0) -> Result:
         selected, msg = self.select_backend(backend)
         if not selected:
@@ -61,50 +62,31 @@ class BackendManager:
                 success=False,
                 content=[ErrorContent(message=f"{msg}. Available: {available}")]
             )
-        
-        if not selected._started:
-            if not selected.start():
-                return Result(
-                    success=False,
-                    content=[ErrorContent(message=f"Failed to start {selected.name}")]
-                )
-        
+
+        if not selected.start():
+            return Result(
+                success=False,
+                content=[ErrorContent(message=f"Failed to start {selected.name}")]
+            )
+
         return selected.evaluate(code, timeout)
-    
-    def reset(self, backend: Optional[str] = None) -> dict:
+
+    def stop(self, backend: Optional[str] = None) -> dict:
+        """Stop backend and clear all state. Can be used to reset or free memory."""
         if backend:
-            b = self._backends.get(backend)
-            if b:
-                b.reset()
+            backend_cls = self._backend_classes.get(backend)
+            if backend_cls:
+                instance = backend_cls()
+                instance.stop()
                 return {"success": True, "message": f"Reset {backend}"}
             return {"success": False, "message": f"Backend '{backend}' not found"}
-        
-        for b in self._backends.values():
-            if b._started:
-                b.reset()
+
+        for backend_cls in self._backend_classes.values():
+            if backend_cls.is_available():
+                instance = backend_cls()
+                instance.stop()
         return {"success": True, "message": "Reset all backends"}
-    
-    def stop_all(self) -> None:
-        for b in self._backends.values():
-            if b._started:
-                try:
-                    b.stop()
-                except Exception:
-                    pass
-    
-    def stop(self, backend: Optional[str] = None) -> dict:
-        if backend:
-            b = self._backends.get(backend)
-            if b:
-                if b._started:
-                    b.stop()
-                    return {"success": True, "message": f"Stopped {backend}"}
-                return {"success": True, "message": f"{backend} not running"}
-            return {"success": False, "message": f"Backend '{backend}' not found"}
-        
-        self.stop_all()
-        return {"success": True, "message": "Stopped all backends"}
-    
+
     def doc(self, symbol: str, backend: Optional[str] = None) -> Result:
         selected, msg = self.select_backend(backend)
         if not selected:
@@ -113,14 +95,13 @@ class BackendManager:
                 success=False,
                 content=[ErrorContent(message=f"{msg}. Available: {available}")]
             )
-        
-        if not selected._started:
-            if not selected.start():
-                return Result(
-                    success=False,
-                    content=[ErrorContent(message=f"Failed to start {selected.name}")]
-                )
-        
+
+        if not selected.start():
+            return Result(
+                success=False,
+                content=[ErrorContent(message=f"Failed to start {selected.name}")]
+            )
+
         if selected.name == "mathematica":
             doc_code = f'''Module[{{usage, opts, attrs, result}},
                 result = Quiet[Check[
@@ -129,7 +110,7 @@ class BackendManager:
                     attrs = ToString[Attributes[{symbol}], OutputForm];
                     If[usage === "Null" || StringQ[usage] === False,
                         "Symbol '{symbol}' not found or has no documentation.",
-                        "=== {symbol} ===" <> "\\n\\n" <> 
+                        "=== {symbol} ===" <> "\\n\\n" <>
                         "USAGE:\\n" <> usage <> "\\n\\n" <>
                         "ATTRIBUTES: " <> attrs <> "\\n\\n" <>
                         "OPTIONS:\\n" <> opts
@@ -140,10 +121,14 @@ class BackendManager:
             ]'''
         elif selected.name == "octave":
             doc_code = f'ans = help("{symbol}"); disp(ans)'
+        elif selected.name == "maxima":
+            doc_code = f'? {symbol}'
+        elif selected.name == "sympy":
+            doc_code = f'import inspect; print(inspect.getdoc({symbol}))'
         else:
             return Result(
                 success=False,
                 content=[ErrorContent(message=f"doc not supported for backend: {selected.name}")]
             )
-        
+
         return selected.evaluate(doc_code)

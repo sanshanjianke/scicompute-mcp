@@ -40,15 +40,15 @@
 │                 MCP Server (stdio)                  │
 │  ┌─────────────────────────────────────────────┐   │
 │  │            BackendManager                    │   │
-│  │  - 检测/管理可用后端                         │   │
+│  │  - 检测/管理可用后端（懒加载）               │   │
 │  │  - 路由请求                                 │   │
 │  │  - 统一返回格式                             │   │
 │  └─────────────────────────────────────────────┘   │
 │          │        │        │        │              │
-│     ┌────┴───┐ ┌──┴───┐ ┌──┴───┐ ┌──┴────┐ ┌──────┐
-│     │Mathematica│ │Octave│ │SymPy│ │Julia │ │MATLAB │ ...
-│     │ Backend │ │Backend│ │Backend│ │Backend│       │
-│     └────────┘ └──────┘ └──────┘ └──────┘ └──────┘
+│     ┌────┴───┐ ┌──┴───┐ ┌──┴───┐ ┌──┴────┐        │
+│     │Mathema-│ │Octave│ │SymPy │ │Maxima │ ...    │
+│     │ tica   │ │      │ │      │ │       │        │
+│     └────────┘ └──────┘ └──────┘ └───────┘        │
 └─────────────────────────────────────────────────────┘
 ```
 
@@ -62,8 +62,9 @@ class ComputeBackend(ABC):
     description: str             # 能力描述（给 AI 看）
     capabilities: list[str]      # ["symbolic", "numeric", "plot", ...]
     
+    @classmethod
     @abstractmethod
-    def is_available() -> bool: ...
+    def is_available(cls) -> bool: ...  # 类方法，无需实例化即可检查
     
     @abstractmethod
     def start() -> bool: ...
@@ -73,6 +74,28 @@ class ComputeBackend(ABC):
     
     @abstractmethod
     def reset() -> None: ...
+```
+
+### 懒加载机制
+
+后端采用懒加载，避免启动时占用过多内存：
+
+1. **注册阶段**：`BackendManager` 只存储后端类，不实例化
+2. **检查阶段**：`is_available()` 是类方法，无需创建实例
+3. **使用阶段**：调用 `compute()` 时才实例化并启动对应后端
+
+```python
+# 创建 manager 时不实例化任何后端
+mgr = BackendManager()
+print(mgr._instances)  # {}
+
+# list_available 用类方法检查，仍不实例化
+mgr.list_available()
+print(mgr._instances)  # {}
+
+# 只有实际调用 compute 才实例化
+mgr.compute("1+1", backend="maxima")
+print(mgr._instances)  # {"maxima": <MaximaBackend>}
 ```
 
 ### 返回类型
@@ -120,7 +143,7 @@ class ErrorContent:
 
 ## MCP Tools 定义
 
-精简为 4 个工具，减少 token 占用：
+共 5 个工具：
 
 ### 1. compute
 
@@ -168,7 +191,21 @@ class ErrorContent:
 
 **返回：** 操作结果
 
-### 4. doc
+### 4. stop_backend
+
+停止并关闭后端，释放内存。后端可在需要时重新启动。
+
+**参数：**
+- `backend` (string, optional): 后端名称，不填则停止全部
+
+**返回：** 操作结果
+
+**使用场景：**
+- 长时间不用某后端，释放内存
+- 后端出问题时重启
+- 切换到其他后端前清理
+
+### 5. doc
 
 查询符号的文档信息。当 AI 遇到不熟悉的函数时，可主动查询用法。
 
@@ -242,26 +279,62 @@ ExportString[expr, {"WAV", "Base64"}]    (* 音频 *)
 
 1. 用户在提示词中指定 → 使用指定后端
 2. 未指定 → 按优先级选择第一个可用的：
-   - 默认优先级：`mathematica > matlab > sympy > julia > numpy`
-   - 可通过配置文件调整
+   - 默认优先级：`mathematica > maxima > sympy > octave`
+   - 可通过 `SCICOMPUTE_PRIORITY` 环境变量调整
 
 如果只有一个后端可用，自动使用该后端。
 
-## 配置
+## 客户端兼容性
 
-### opencode.json
+MCP Server 本身遵循标准协议，可在多个客户端间通用。但各客户端配置格式不同：
+
+### opencode (`opencode.json`)
 
 ```json
 {
   "mcp": {
     "scicompute": {
       "type": "local",
-      "command": ["python", "-m", "scicompute_mcp"],
+      "command": ["/path/to/python", "-m", "scicompute_mcp.server"],
       "enabled": true
     }
   }
 }
 ```
+
+### Claude Code (`.mcp.json`)
+
+```json
+{
+  "mcpServers": {
+    "scicompute": {
+      "command": "/path/to/python",
+      "args": ["-m", "scicompute_mcp.server"],
+      "cwd": "/home/user/project"
+    }
+  }
+}
+```
+
+### Claude Desktop (`claude_desktop_config.json`)
+
+```json
+{
+  "mcpServers": {
+    "scicompute": {
+      "command": "/path/to/python",
+      "args": ["-m", "scicompute_mcp.server"]
+    }
+  }
+}
+```
+
+**主要区别：**
+- 顶层 key 不同：`mcp` vs `mcpServers`
+- command 格式：opencode 用数组，其他客户端分 command + args
+- opencode 有 `type` 和 `enabled` 字段
+
+## 配置
 
 ### 环境变量
 
@@ -275,6 +348,26 @@ ExportString[expr, {"WAV", "Base64"}]    (* 音频 *)
 
 ## 文件结构
 
+```
+scicompute_mcp/
+├── pyproject.toml
+├── README.md
+├── DESIGN.md
+├── .mcp.json              # Claude Code 配置
+└── src/
+    └── scicompute_mcp/
+        ├── __init__.py
+        ├── server.py           # MCP 服务器入口
+        ├── manager.py          # BackendManager（懒加载）
+        ├── backends/
+        │   ├── __init__.py
+        │   ├── base.py         # Backend 基类
+        │   ├── mathematica.py  # Mathematica 后端
+        │   ├── octave.py       # Octave 后端
+        │   ├── maxima.py       # Maxima 后端
+        │   └── sympy.py        # SymPy/NumPy/Matplotlib 后端
+        └── utils/
+            └── __init__.py
 ```
 scicompute_mcp/
 ├── pyproject.toml
@@ -314,10 +407,14 @@ scicompute_mcp/
 - [x] 图片输出 (PNG)
 - [x] 基础测试
 
+### Phase 1.6: 其他后端 ✅
+- [x] Maxima 后端（符号计算）
+- [x] SymPy 后端（Python 生态）
+
 ### Phase 2: Python 生态
-- [ ] SymPy 后端
-- [ ] NumPy/SciPy 后端
-- [ ] Matplotlib 图像输出
+- [x] SymPy 后端
+- [x] NumPy/SciPy 后端（集成在 SymPy 后端中）
+- [x] Matplotlib 图像输出
 
 ### Phase 3: 商业软件
 - [ ] MATLAB 后端

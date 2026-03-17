@@ -45,8 +45,9 @@ class ComputeBackend(ABC):
     
     _started: bool = False
     
+    @classmethod
     @abstractmethod
-    def is_available(self) -> bool:
+    def is_available(cls) -> bool:
         """Check if this backend is available on the system."""
         ...
     
