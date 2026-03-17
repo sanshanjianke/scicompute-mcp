@@ -1,220 +1,125 @@
-# SageMath 使用指南
+# SageMath 与 AI 协作指南
 
-SageMath 是一个开源数学软件系统，整合了 NumPy, SciPy, SymPy, Maxima, GAP, FLINT, R 等众多数学软件的功能。
+本文档面向已熟悉 SageMath 的用户，介绍如何通过与 AI 对话来使用 SageMath 后端。
 
-## 基本计算
+## AI 能做什么
 
-### 算术运算
+- 执行 SageMath 代码并返回结果
+- 绘制图形（自动保存并显示）
+- 保持会话状态（变量在多次调用间保持）
+- 查询函数文档
 
-```sage
-# 基本运算
-2 + 3
-2^10
-sqrt(2)
+## 与 AI 对话示例
+
+### 基本计算
+
+```
+用户：计算 ∫sin(x)dx 从 0 到 π
+AI：(自动选择 SageMath 后端执行 integrate(sin(x), x, 0, pi))
+结果：2
+```
+
+```
+用户：分解 100 的质因数
+AI：factor(100) → 2^2 * 5^2
 ```
 
 ### 符号计算
 
-```sage
-# 定义符号变量
-x, y, z = var('x y z')
-
-# 符号表达式
-expr = x^2 + 2*x + 1
-expr.expand()
-expr.factor()
-
-# 化简
-simplify(x^2 - 2*x + 1)
+```
+用户：解微分方程 y' + y = x
+AI：(使用 desolve)
+结果：y(x) = x - 1 + C*e^(-x)
 ```
 
-## 微积分
+### 绘图
 
-### 求导
-
-```sage
-# 求导
-diff(x^3, x)
-diff(x^2 * y, x, y)  # 偏导
-
-# 符号函数求导
-f(x) = x^2 * sin(x)
-f.diff(x)
+```
+用户：画一个 sin(x) 在 0 到 2π 的图
+AI：plot(sin(x), (x, 0, 2*pi))
+(图片自动显示)
 ```
 
-### 积分
+## AI 协作技巧
 
-```sage
-# 不定积分
-integrate(x^2, x)
-integrate(sin(x), x)
+### 1. 用自然语言描述问题
 
-# 定积分
-integrate(x^2, x, 0, 1)
-integrate(exp(-x^2), x, -infinity, infinity)
+不需要写完整代码，AI 会帮你转换：
+
+```
+好：求 x² + 2x + 1 = 0 的根
+差：solve(x^2 + 2*x + 1 == 0, x)  # 你自己写了代码
 ```
 
-### 极限
+### 2. 指定后端（可选）
 
-```sage
-limit(sin(x)/x, x=0)
-limit(1/x, x=0, dir='+')
-limit(1/x, x=0, dir='-')
+如果有多个后端可用，可以指定：
+
+```
+用 SageMath 计算 integrate(x^2, x)
+用 Mathematica 画 Plot[Sin[x], {x, 0, 10}]
 ```
 
-### 级数展开
+### 3. 利用会话持久性
 
-```sage
-# 泰勒展开
-series(sin(x), x, 0, 5)
-exp(x).series(x, 5)
+```
+用户：定义 f(x) = x^2 + sin(x)
+AI：(已定义)
+
+用户：求 f 在 x=2 处的值
+AI：f(2) = 4 + sin(2)
 ```
 
-## 方程求解
+变量在会话中保持，可以分步工作。
 
-### 代数方程
+### 4. 查询文档
 
-```sage
-# 求解方程
-solve(x^2 - 4 == 0, x)
-solve([x + y == 3, x - y == 1], x, y)
-
-# 数值求解
-find_root(cos(x) == x, 0, 1)
 ```
-
-### 微分方程
-
-```sage
-# 常微分方程
-y = function('y')(x)
-desolve(diff(y, x) + y == x, y)
-```
-
-## 线性代数
-
-### 矩阵运算
-
-```sage
-# 创建矩阵
-A = matrix([[1, 2], [3, 4]])
-B = matrix([[2, 0], [1, 3]])
-
-# 基本运算
-A + B
-A * B
-A.inverse()
-A.det()
-A.rank()
-
-# 特征值和特征向量
-A.eigenvalues()
-A.eigenvectors_right()
-```
-
-### 向量空间
-
-```sage
-# 向量
-v = vector([1, 2, 3])
-w = vector([4, 5, 6])
-
-v + w
-v.dot_product(w)
-v.cross_product(w)
-```
-
-## 数论
-
-### 素数
-
-```sage
-# 素数判定
-is_prime(17)
-
-# 第 n 个素数
-nth_prime(10)
-
-# 素数列表
-prime_range(10, 50)
-
-# 素因数分解
-factor(123456)
-```
-
-### 整数运算
-
-```sage
-# 最大公约数
-gcd(12, 18)
-
-# 最小公倍数
-lcm(12, 18)
-
-# 模运算
-power_mod(2, 100, 17)
-```
-
-## 绘图
-
-### 2D 绘图
-
-```sage
-# 函数绘图
-plot(sin(x), x, -pi, pi)
-
-# 多个函数
-plot([sin(x), cos(x)], x, -2*pi, 2*pi)
-
-# 参数方程
-parametric_plot([cos(t), sin(t)], (t, 0, 2*pi))
-
-# 极坐标
-polar_plot(sin(3*t), (t, 0, 2*pi))
-```
-
-### 3D 绘图
-
-```sage
-# 3D 曲面
-plot3d(sin(x*y), (x, -2, 2), (y, -2, 2))
-
-# 参数曲面
-var('u v')
-parametric_plot3d([cos(u)*sin(v), sin(u)*sin(v), cos(v)],
-                   (u, 0, 2*pi), (v, 0, pi))
-```
-
-## 组合数学
-
-```sage
-# 排列组合
-binomial(10, 3)
-
-# 斐波那契数列
-fibonacci(10)
-
-# 集合划分
-Set([1,2,3]).subsets()
+用户：integrate 函数怎么用？
+AI：(调用 doc("integrate", "sage"))
 ```
 
 ## 注意事项
 
-1. **持久化会话**: 变量和函数在调用之间保持有效
-2. **Python 语法**: SageMath 基于 Python，可以使用 Python 语法
-3. **帮助系统**: 使用 `?` 查询文档，如 `integrate?`
-4. **自动输出**: 表达式会自动打印结果，赋值语句不打印
+### 绘图需要显式调用
 
-## 安装说明
+SageMath 原生 `plot()` 返回图形对象，需保存：
 
-SageMath 需要通过 conda 安装，并且要求 Python 3.11：
+```sage
+# 方式 1：让 AI 自动处理（推荐）
+plot(sin(x), (x, 0, 2*pi))
 
-```bash
-# 创建环境
-conda create -n sage python=3.11 -y
-
-# 安装 SageMath
-conda install -n sage -c conda-forge sage -y
+# 方式 2：手动保存
+p = plot(sin(x), (x, 0, 2*pi))
+p.save("/tmp/myplot.png")
 ```
 
-安装后更新 `src/scicompute_mcp/backends/sage.py` 中的 `SAGE_PATH`。
+### 会话管理
+
+- 变量在多次调用间保持
+- 要清除变量，告诉 AI："重置 SageMath 会话"
+- 要关闭后端：`stop("sage")`
+
+## 与其他后端对比
+
+| 功能 | SageMath | Mathematica | Python Scientific |
+|------|----------|-------------|-------------------|
+| 数论 | ⭐ 最强 | 一般 | 一般 |
+| 符号积分 | 强 | ⭐ 最强 | 一般 |
+| 微分方程 | 强 | ⭐ 最强 | 一般 |
+| 绘图 | 强 | ⭐ 最强 | 强 |
+| 开源 | ✅ | ❌ | ✅ |
+
+## 常见问题
+
+**Q: AI 说 SageMath 不可用？**
+
+A: 确保已安装 SageMath（见 README.md），后端会自动检测路径。
+
+**Q: 图没显示？**
+
+A: 图片已生成，可能是客户端显示问题。检查 `/tmp/` 目录下的 png 文件。
+
+**Q: 计算超时？**
+
+A: 默认超时 30 秒，告诉 AI："用更长的超时时间"或简化问题。

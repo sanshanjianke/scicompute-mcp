@@ -1,66 +1,94 @@
-# Octave 后端使用指南
+# Octave 与 AI 协作指南
 
-## 简介
+本文档面向已熟悉 MATLAB/Octave 的用户，介绍如何通过与 AI 对话来使用 Octave 后端。
 
-GNU Octave 是一个与 MATLAB 兼容的科学计算语言，适合数值计算、矩阵运算和数据可视化。
+## AI 能做什么
 
-## 基本使用
+- 执行 Octave/MATLAB 代码
+- 矩阵运算和数值计算
+- 绑制 2D/3D 图形
+- 保持会话状态（变量持久化）
 
-### 算术运算
-
-```octave
-1 + 2
-2^10
-sqrt(2)
-```
+## 与 AI 对话示例
 
 ### 矩阵运算
 
-```octave
-A = [1 2; 3 4];        % 定义矩阵
-det(A)                  % 行列式: -2
-inv(A)                  % 逆矩阵
-A * A                   % 矩阵乘法
-A'                      % 转置
+```
+用户：计算矩阵 [[1,2],[3,4]] 的逆矩阵
+AI：A = [1 2; 3 4];
+     inv(A)
+结果：[[-2, 1], [1.5, -0.5]]
 ```
 
-### 向量操作
-
-```octave
-v = [1, 2, 3, 4, 5];
-v'                      % 转置（列向量）
-v(1)                    % 第一个元素（索引从 1 开始）
-v(2:4)                  % 第 2-4 个元素
-v(end)                  % 最后一个元素
+```
+用户：解线性方程组 Ax = b，A=[[1,2],[3,4]]，b=[5,6]
+AI：A = [1 2; 3 4];
+     b = [5; 6];
+     A \ b
 ```
 
-### 数学函数
+### 数值计算
 
-```octave
-sin(pi/2)               % 三角函数
-exp(1)                  % 指数函数
-log(10)                 % 自然对数
-log10(100)              % 以 10 为底的对数
-abs(-5)                 % 绝对值
-floor(3.7)              % 向下取整
-ceil(3.2)               % 向上取整
+```
+用户：计算 sin(x) 在 0 到 π 的积分，用数值方法
+AI：quad(@(x) sin(x), 0, pi)
+结果：约 2.0
 ```
 
-## 绑图功能
+### 绑图
 
-### 2D 绑图
+```
+用户：画 sin(x) 和 cos(x) 在 0 到 2π 的图
+AI：x = 0:0.1:2*pi;
+     plot(x, sin(x), 'b-', x, cos(x), 'r--')
+     legend('sin', 'cos')
+(图片自动显示)
+```
+
+## AI 协作技巧
+
+### 1. 用自然语言描述问题
+
+```
+好：求矩阵的特征值和特征向量
+差：eig(A)  # 你自己写了代码
+```
+
+### 2. 分步工作流
+
+```
+用户：创建一个 3x3 的随机矩阵
+AI：A = rand(3, 3)
+
+用户：计算它的特征值
+AI：eig(A)
+
+用户：画特征值的散点图
+AI：e = eig(A);
+     scatter(real(e), imag(e))
+```
+
+### 3. 指定后端（与 MATLAB 对比）
+
+```
+用 Octave 计算这个积分
+用 Mathematica 做符号积分
+```
+
+## 绑图注意事项
+
+### 基础绑图
 
 ```octave
 x = 0:0.1:2*pi;
-y = sin(x);
-plot(x, y)
+plot(x, sin(x))          % 自动保存并显示
 title('Sin Function')
 xlabel('X')
 ylabel('Y')
 grid on
 ```
 
-### 多条曲线
+### 多图画在一起
 
 ```octave
 x = 0:0.1:2*pi;
@@ -68,97 +96,50 @@ plot(x, sin(x), 'b-', x, cos(x), 'r--')
 legend('sin', 'cos')
 ```
 
-### 3D 绑图
+### 3D 图形
 
 ```octave
 [X, Y] = meshgrid(-2:0.2:2);
 Z = X .* exp(-X.^2 - Y.^2);
 surf(X, Y, Z)
-title('3D Surface')
-```
-
-### 其他绑图类型
-
-```octave
-% 柱状图
-bar([1, 3, 2, 4])
-
-% 直方图
-hist(randn(1000, 1), 30)
-
-% 散点图
-scatter(rand(100,1), rand(100,1))
-
-% 等高线图
-contour(X, Y, Z)
-
-% 热力图
-imagesc(magic(5))
 ```
 
 ### 子图
 
 ```octave
-subplot(2, 2, 1); plot(x, sin(x)); title('Sin')
-subplot(2, 2, 2); plot(x, cos(x)); title('Cos')
-subplot(2, 2, 3); plot(x, tan(x)); title('Tan')
+subplot(2,2,1); plot(x, sin(x)); title('Sin')
+subplot(2,2,2); plot(x, cos(x)); title('Cos')
 ```
 
-## 控制流
+## 与其他后端对比
 
-### 条件语句
+| 功能 | Octave | Mathematica | Python Scientific |
+|------|--------|-------------|-------------------|
+| 数值计算 | ⭐ 强 | 强 | 强 |
+| 矩阵运算 | ⭐ 最强 | 强 | 强 |
+| 符号计算 | ❌ | ⭐ 最强 | 强 |
+| 3D 绑图 | 强 | ⭐ 最强 | 强 |
+| MATLAB 兼容 | ✅ | ❌ | ❌ |
+| 开源免费 | ✅ | ❌ | ✅ |
+
+**适合 Octave 的场景**：数值计算、矩阵运算、MATLAB 代码迁移
+
+## 特殊注意事项
+
+### 注释位置
+
+Octave 对行内注释处理可能有问题：
 
 ```octave
-if x > 0
-  disp('positive')
-elseif x < 0
-  disp('negative')
-else
-  disp('zero')
-end
+% 推荐写法（注释单独一行）
+% 计算平方
+y = x^2;
+
+% 可能出错的写法
+y = x^2; % 平方
 ```
 
-### 循环
-
-```octave
-for i = 1:10
-  disp(i)
-end
-
-while x > 0
-  x = x - 1;
-end
-```
-
-### 函数定义
-
-```octave
-function y = my_square(x)
-  y = x ^ 2;
-endfunction
-
-my_square(5)  % 返回 25
-```
-
-## 注意事项
-
-### 注释
-
-Octave 不支持行内注释 `%` 后直接跟代码在同一行执行。
-
-```octave
-% 这是注释
-x = 5;   % 这行可以正常工作
-
-% 下面的写法可能导致解析错误：
-% x = 5; % 设置 x 为 5
-```
-
-建议将注释单独放在一行。
-
-### 索引
-
-Octave 索引从 **1** 开始，不是 0：
+### 索引从 1 开始
 
 ```octave
 v = [10, 20, 30];
@@ -166,7 +147,7 @@ v(1)   % 返回 10（第一个元素）
 v(0)   % 错误！
 ```
 
-### 矩阵乘法 vs 元素乘法
+### 矩阵运算 vs 元素运算
 
 ```octave
 A * B    % 矩阵乘法
@@ -176,51 +157,16 @@ A ^ 2    % 矩阵平方
 A .^ 2   % 每个元素平方
 ```
 
-### 字符串
-
-使用单引号或双引号：
-
-```octave
-s1 = 'hello';
-s2 = "world";
-```
-
 ## 常见问题
 
-### Q: 如何清除变量？
+**Q: 如何清除变量？**
 
-```octave
-clear x      % 清除变量 x
-clear        % 清除所有变量
-clc          % 清除命令窗口
-close all    % 关闭所有图形窗口
-```
+告诉 AI："清除所有变量" 或直接说 `clear`
 
-### Q: 如何查看帮助？
+**Q: 图形不显示？**
 
-```octave
-help plot    % 查看 plot 函数的帮助
-doc plot     % 打开文档
-```
+检查 `/tmp/` 目录下是否生成了 PNG 文件。可能是客户端显示问题。
 
-### Q: 如何保存和加载数据？
+**Q: MATLAB 代码能用吗？**
 
-```octave
-save('data.mat', 'A', 'B')   % 保存变量 A, B 到文件
-load('data.mat')              % 加载文件中的变量
-```
-
-### Q: 如何设置图形可见性？
-
-后端默认设置 `set(0, 'DefaultFigureVisible', 'off')` 以在无显示环境下工作。如需交互式图形：
-
-```octave
-set(0, 'DefaultFigureVisible', 'on')
-plot(x, y)
-```
-
-## 参考资源
-
-- [Octave 官方文档](https://octave.org/doc/)
-- [Octave Wiki](https://wiki.octave.org/)
-- [MATLAB 兼容性说明](https://octave.org/doc/interpreter/MATLAB-Compatibility.html)
+大部分 MATLAB 代码兼容。不支持的函数 AI 会提示。
