@@ -61,3 +61,60 @@ SageMath 的 `_execute_plot()` 方法将代码包装为 matplotlib 格式，但 
 - 测试 SageMath 原生绘图与 matplotlib 绑图的区别
 - 考虑移除 matplotlib 包装，让用户手动 `.save()`
 
+---
+
+## doc 工具改为 RAG 系统
+
+**状态**: Open
+**优先级**: Low
+**发现时间**: 2026-03-18
+
+### 问题描述
+
+当前 `doc` 工具只是调用各后端的内置帮助命令，功能有限：
+
+| 后端 | 当前实现 | 问题 |
+|------|----------|------|
+| Mathematica | `Information[symbol, "Usage"]` | 只有简短用法 |
+| Octave | `help("symbol")` | 终端帮助文本 |
+| SageMath | `symbol?` | IPython 帮助 |
+| Python | `inspect.getdoc()` | 只有 docstring |
+| R | `?symbol` | 简短帮助 |
+
+### 改进方案：RAG 系统
+
+将 `doc` 改为基于 RAG (Retrieval-Augmented Generation) 的文档检索系统：
+
+1. **离线文档库** - 预下载各后端的官方文档
+2. **向量数据库** - 如 FAISS、ChromaDB
+3. **语义检索** - 根据用户问题检索相关文档片段
+4. **返回给 AI** - 作为上下文提供给 AI 生成回答
+
+### 技术方案
+
+```python
+# 示例架构
+class DocRAG:
+    def __init__(self):
+        self.vector_db = ChromaDB()  # 向量数据库
+        self.embeddings = SentenceTransformer()  # 嵌入模型
+
+    def query(self, question: str, backend: str) -> str:
+        # 1. 向量检索
+        docs = self.vector_db.search(question, backend)
+        # 2. 返回相关文档片段
+        return docs
+```
+
+### 待办事项
+
+- [ ] 调研离线文档获取方式（各后端官网/文档站点）
+- [ ] 选择向量数据库（FAISS vs ChromaDB vs 其他）
+- [ ] 设计文档分块策略
+- [ ] 实现嵌入和检索
+- [ ] 集成到 MCP 工具
+
+### 当前状态
+
+保留现有 `doc` 工具作为临时方案，RAG 系统作为长期目标。
+
