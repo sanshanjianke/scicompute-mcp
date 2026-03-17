@@ -7,6 +7,7 @@ from .backends.octave import OctaveBackend
 from .backends.maxima import MaximaBackend
 from .backends.py_scientific import PyScientificBackend
 from .backends.r import RBackend
+from .backends.sage import SageBackend
 
 
 class BackendManager:
@@ -20,16 +21,18 @@ class BackendManager:
     def _register_backend_classes(self):
         self._backend_classes["mathematica"] = MathematicaBackend
         self._backend_classes["octave"] = OctaveBackend
-        self._backend_classes["maxima"] = MaximaBackend
+        # maxima 保留但默认不启用，如需使用请取消下行注释
+        # self._backend_classes["maxima"] = MaximaBackend
         self._backend_classes["py_scientific"] = PyScientificBackend
         self._backend_classes["r"] = RBackend
+        self._backend_classes["sage"] = SageBackend
 
     def _load_priority(self):
         env_priority = os.environ.get("SCICOMPUTE_PRIORITY", "")
         if env_priority:
             self._priority = [p.strip() for p in env_priority.split(",")]
         else:
-            self._priority = ["mathematica", "maxima", "py_scientific", "octave"]
+            self._priority = ["mathematica", "sage", "py_scientific", "r", "octave"]
 
     def list_available(self) -> list[dict]:
         result = []
@@ -129,6 +132,8 @@ class BackendManager:
             doc_code = f'import inspect; print(inspect.getdoc({symbol}))'
         elif selected.name == "r":
             doc_code = f'?{symbol}'
+        elif selected.name == "sage":
+            doc_code = f'{symbol}?'
         else:
             return Result(
                 success=False,
