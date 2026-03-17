@@ -9,10 +9,18 @@ description = "MCP server for scientific computing with multiple backends"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
+    # MCP 核心
     "mcp>=1.0.0",
+    # Mathematica 后端
     "wolframclient>=1.4.0",
+    # Octave 后端 (需要 GitHub 版本以支持较新 Python)
     "oct2py @ git+https://github.com/blink1073/oct2py.git@main",
-    "sympy>=1.0.0",
+    # Python 科学计算后端
+    "numpy>=2.0.0",
+    "scipy>=1.10.0",
+    "sympy>=1.12.0",
+    "matplotlib>=3.8.0",
+    "pandas>=2.0.0",
 ]
 
 [project.scripts]
@@ -20,6 +28,10 @@ scicompute-mcp = "scicompute_mcp.server:main"
 
 [project.optional-dependencies]
 test = ["pytest>=7.0.0"]
+dev = [
+    "pytest>=7.0.0",
+    "ipython>=8.0.0",
+]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
