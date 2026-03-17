@@ -20,12 +20,42 @@ from .base import ComputeBackend, Result, TextContent, ImageContent, ErrorConten
 _process: Optional[subprocess.Popen] = None
 _lock = threading.Lock()
 
-# SageMath 路径：优先环境变量，否则自动查找
-SAGE_PATH = (
-    os.environ.get("SAGE_PATH") or
-    shutil.which("sage") or
-    "/usr/bin/sage"
-)
+
+def _find_sage_path() -> str:
+    """自动检测 SageMath 安装路径"""
+    # 1. 环境变量
+    env_path = os.environ.get("SAGE_PATH")
+    if env_path and os.path.exists(env_path):
+        return env_path
+
+    # 2. PATH 中查找
+    which_path = shutil.which("sage")
+    if which_path:
+        return which_path
+
+    # 3. 常见 conda 环境路径
+    home = os.path.expanduser("~")
+    conda_patterns = [
+        f"{home}/miniconda3/envs/sage/bin/sage",
+        f"{home}/anaconda3/envs/sage/bin/sage",
+        f"{home}/miniforge3/envs/sage/bin/sage",
+        "/opt/conda/envs/sage/bin/sage",
+    ]
+    for path in conda_patterns:
+        if os.path.exists(path):
+            return path
+
+    # 4. 系统安装路径
+    system_paths = ["/usr/bin/sage", "/usr/local/bin/sage", "/opt/sage/sage"]
+    for path in system_paths:
+        if os.path.exists(path):
+            return path
+
+    # 5. 默认返回（可能不存在）
+    return "/usr/bin/sage"
+
+
+SAGE_PATH = _find_sage_path()
 
 
 class SageBackend(ComputeBackend):
