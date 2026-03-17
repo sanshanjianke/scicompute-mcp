@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "scicompute": {
+      "command": "/path/to/python",
+      "args": ["-m", "scicompute_mcp.server"]
+    }
+  }
+}
