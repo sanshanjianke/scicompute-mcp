@@ -35,35 +35,35 @@ MCP server for scientific computing with multiple backends. Provides AI coding a
 │                    MCP Server (Python 3.10+)                │
 │  ┌─────────────┐ ┌─────────────┐ ┌────────────────────────┐ │
 │  │ Mathematica │ │   Octave    │ │     py_scientific      │ │
-│  │   Backend   │ │   Backend   │ │   (同一 Python 环境)    │ │
+│  │   Backend   │ │   Backend   │ │  (same Python env)     │ │
 │  └──────┬──────┘ └──────┬──────┘ └────────────────────────┘ │
 │         │               │                                    │
 │         ▼               ▼                                    │
 │  ┌─────────────┐ ┌─────────────┐ ┌─────────────┐            │
 │  │  Wolfram    │ │   octave    │ │      R      │   sage     │
-│  │  Kernel     │ │   进程      │ │    进程     │   进程     │
+│  │  Kernel     │ │   process   │ │   process   │  process   │
 │  └─────────────┘ └─────────────┘ └─────────────┘            │
 │         │               │               │          │         │
 │         ▼               ▼               ▼          ▼         │
-│   独立安装        独立安装         独立安装    conda 环境     │
-│   (官方安装)     (apt/brew)      (apt/brew)  (Python 3.11)  │
+│   Independent     Independent      Independent   conda env  │
+│   (official)      (apt/brew)       (apt/brew)  (Python 3.11)│
 └─────────────────────────────────────────────────────────────┘
 ```
 
-**关键理解**：
-- MCP 服务器只需要 **一个** Python 环境
-- 各后端（除 py_scientific）都是独立进程，不共享 Python 环境
-- SageMath 需要单独的 conda 环境（Python < 3.13）
+**Key Points**:
+- MCP server only needs **one** Python environment
+- Each backend (except py_scientific) runs as independent process, not sharing Python environment
+- SageMath requires separate conda environment (Python < 3.13)
 
 ### Step 1: Install MCP Server
 
 ```bash
-# 方法 A: 使用 venv (推荐)
+# Method A: Using venv (recommended)
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -e .
 
-# 方法 B: 使用 conda
+# Method B: Using conda
 conda create -n scicompute python=3.12 -y
 conda activate scicompute
 pip install -e .
@@ -71,33 +71,33 @@ pip install -e .
 
 ### Step 2: Install Computing Backends
 
-按需安装，不需要全部安装：
+Install as needed, not all are required:
 
 #### Python Scientific Backend
 
-已在 MCP 服务器环境中安装，无需额外配置。
+Pre-installed with the main package, no additional configuration needed.
 
 #### SageMath Backend
 
-SageMath 需要 Python < 3.13，必须用 conda 单独安装：
+SageMath requires Python < 3.13, must be installed separately via conda:
 
 ```bash
-# 配置镜像（可选，国内用户推荐）
+# Configure mirror (optional, recommended for users in China)
 conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/conda-forge/
 
-# 创建 SageMath 环境
+# Create SageMath environment
 conda create -n sage python=3.11 -y
 conda install -n sage -c conda-forge sage -y
 ```
 
-配置路径（二选一）：
+Configure path (choose one):
 
 ```bash
-# 方法 A: 环境变量（推荐）
+# Method A: Environment variable (recommended)
 export SAGE_PATH="$HOME/miniconda3/envs/sage/bin/sage"
 
-# 方法 B: 修改代码中的 SAGE_PATH
-# 编辑 src/scicompute_mcp/backends/sage.py
+# Method B: Modify SAGE_PATH in code
+# Edit src/scicompute_mcp/backends/sage.py
 ```
 
 #### R Backend
@@ -109,7 +109,7 @@ sudo apt install r-base
 # macOS
 brew install r
 
-# Windows: 下载 CRAN 安装包
+# Windows: Download from CRAN
 ```
 
 #### Octave Backend
@@ -121,13 +121,13 @@ sudo apt install octave gnuplot
 # macOS
 brew install octave gnuplot
 
-# Windows: 下载 Octave 安装包
+# Windows: Download Octave installer
 ```
 
 #### Mathematica Backend
 
-1. 从 [Wolfram 官网](https://www.wolfram.com/mathematica/) 购买并安装
-2. 配置路径：
+1. Purchase and install from [Wolfram website](https://www.wolfram.com/mathematica/)
+2. Configure path:
 
 ```bash
 export MATHEMATICA_KERNEL_PATH="/usr/local/Wolfram/Wolfram/14.3/Executables/WolframKernel"
@@ -135,7 +135,7 @@ export MATHEMATICA_KERNEL_PATH="/usr/local/Wolfram/Wolfram/14.3/Executables/Wolf
 
 ### Step 3: Configure MCP Client
 
-创建配置文件 `.mcp.json`（放在项目根目录或用户目录）：
+Create `.mcp.json` configuration file (in project root or home directory):
 
 ```json
 {
@@ -151,11 +151,11 @@ export MATHEMATICA_KERNEL_PATH="/usr/local/Wolfram/Wolfram/14.3/Executables/Wolf
 
 ### Environment Variables
 
-| 变量 | 说明 | 示例 |
-|------|------|------|
-| `SAGE_PATH` | SageMath 路径 | `$HOME/miniconda3/envs/sage/bin/sage` |
-| `MATHEMATICA_KERNEL_PATH` | WolframKernel 路径 | `/usr/local/Wolfram/Wolfram/14.3/Executables/WolframKernel` |
-| `SCICOMPUTE_PRIORITY` | 后端优先级 | `mathematica,sage,py_scientific` |
+| Variable | Description | Example |
+|----------|-------------|---------|
+| `SAGE_PATH` | SageMath path | `$HOME/miniconda3/envs/sage/bin/sage` |
+| `MATHEMATICA_KERNEL_PATH` | WolframKernel path | `/usr/local/Wolfram/Wolfram/14.3/Executables/WolframKernel` |
+| `SCICOMPUTE_PRIORITY` | Backend priority | `mathematica,sage,py_scientific` |
 
 ## Configuration
 
@@ -276,22 +276,21 @@ doc("integrate", "sage")       # SageMath usage
 Ask your AI assistant:
 
 ```
-画一个 sin(x) 的图像
+Plot sin(x) from 0 to 2π
 
-计算 ∫x²dx 从 0 到 1
+Calculate ∫x²dx from 0 to 1
 
-求解 x² - 4 = 0
+Solve x² - 4 = 0
 
-查一下 NDSolve 的用法
+Look up NDSolve usage
 ```
 
 ## Documentation
 
-- `docs/sage.md` - SageMath 使用指南
-- `docs/r.md` - R 语言使用指南
-- `docs/maxima.md` - Maxima 使用指南
-- `docs/octave.md` - Octave 使用指南
-- `DESIGN.md` - 项目设计文档
+- `docs/sage.md` - SageMath collaboration guide
+- `docs/r.md` - R collaboration guide
+- `docs/maxima.md` - Maxima collaboration guide
+- `docs/octave.md` - Octave collaboration guide
 
 ## Requirements
 
