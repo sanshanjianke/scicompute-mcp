@@ -6,6 +6,7 @@ import base64
 import os
 import re
 import select
+import shutil
 import signal
 import subprocess
 import tempfile
@@ -19,8 +20,12 @@ from .base import ComputeBackend, Result, TextContent, ImageContent, ErrorConten
 _process: Optional[subprocess.Popen] = None
 _lock = threading.Lock()
 
-# SageMath 路径
-SAGE_PATH = "/home/ssjk/miniconda3/envs/sage/bin/sage"
+# SageMath 路径：优先环境变量，否则自动查找
+SAGE_PATH = (
+    os.environ.get("SAGE_PATH") or
+    shutil.which("sage") or
+    "/usr/bin/sage"
+)
 
 
 class SageBackend(ComputeBackend):

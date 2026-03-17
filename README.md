@@ -28,58 +28,77 @@ MCP server for scientific computing with multiple backends. Provides AI coding a
 
 ## Installation
 
-### 1. Install Miniconda
+### Environment Architecture
 
-```bash
-# Download and install Miniconda (command-line only, no GUI needed)
-wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
-bash Miniconda3-latest-Linux-x86_64.sh -b -p $HOME/miniconda3
-
-# Initialize conda (optional, for shell integration)
-$HOME/miniconda3/bin/conda init bash
-source ~/.bashrc
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    MCP Server (Python 3.10+)                │
+│  ┌─────────────┐ ┌─────────────┐ ┌────────────────────────┐ │
+│  │ Mathematica │ │   Octave    │ │     py_scientific      │ │
+│  │   Backend   │ │   Backend   │ │   (同一 Python 环境)    │ │
+│  └──────┬──────┘ └──────┬──────┘ └────────────────────────┘ │
+│         │               │                                    │
+│         ▼               ▼                                    │
+│  ┌─────────────┐ ┌─────────────┐ ┌─────────────┐            │
+│  │  Wolfram    │ │   octave    │ │      R      │   sage     │
+│  │  Kernel     │ │   进程      │ │    进程     │   进程     │
+│  └─────────────┘ └─────────────┘ └─────────────┘            │
+│         │               │               │          │         │
+│         ▼               ▼               ▼          ▼         │
+│   独立安装        独立安装         独立安装    conda 环境     │
+│   (官方安装)     (apt/brew)      (apt/brew)  (Python 3.11)  │
+└─────────────────────────────────────────────────────────────┘
 ```
 
-### 2. Create Environment and Install
+**关键理解**：
+- MCP 服务器只需要 **一个** Python 环境
+- 各后端（除 py_scientific）都是独立进程，不共享 Python 环境
+- SageMath 需要单独的 conda 环境（Python < 3.13）
+
+### Step 1: Install MCP Server
 
 ```bash
-# Clone repository
-git clone <repo-url>
-cd scicompute_mcp
+# 方法 A: 使用 venv (推荐)
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -e .
 
-# Create conda environment
+# 方法 B: 使用 conda
 conda create -n scicompute python=3.12 -y
 conda activate scicompute
-
-# Install package
 pip install -e .
 ```
 
-### Backend Requirements
+### Step 2: Install Computing Backends
 
-#### SageMath Backend
-
-SageMath requires a separate conda environment with Python 3.11 (not compatible with Python 3.13+).
-
-```bash
-# Configure conda mirror (optional, for faster downloads in China)
-conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/conda-forge/
-
-# Create SageMath environment with Python 3.11
-conda create -n sage python=3.11 -y
-
-# Install SageMath
-conda install -n sage -c conda-forge sage -y
-```
-
-After installation, update the `SAGE_PATH` in `src/scicompute_mcp/backends/sage.py` to match your conda environment path:
-```python
-SAGE_PATH = "/path/to/miniconda3/envs/sage/bin/sage"
-```
+按需安装，不需要全部安装：
 
 #### Python Scientific Backend
 
-Pre-installed with the main package. Includes NumPy, SciPy, SymPy, Matplotlib, Pandas.
+已在 MCP 服务器环境中安装，无需额外配置。
+
+#### SageMath Backend
+
+SageMath 需要 Python < 3.13，必须用 conda 单独安装：
+
+```bash
+# 配置镜像（可选，国内用户推荐）
+conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/conda-forge/
+
+# 创建 SageMath 环境
+conda create -n sage python=3.11 -y
+conda install -n sage -c conda-forge sage -y
+```
+
+配置路径（二选一）：
+
+```bash
+# 方法 A: 环境变量（推荐）
+export SAGE_PATH="$HOME/miniconda3/envs/sage/bin/sage"
+
+# 方法 B: 修改代码中的 SAGE_PATH
+# 编辑 src/scicompute_mcp/backends/sage.py
+```
 
 #### R Backend
 
@@ -90,8 +109,7 @@ sudo apt install r-base
 # macOS
 brew install r
 
-# Or via conda
-conda install -n scicompute r-base -c conda-forge
+# Windows: 下载 CRAN 安装包
 ```
 
 #### Octave Backend
@@ -103,24 +121,41 @@ sudo apt install octave gnuplot
 # macOS
 brew install octave gnuplot
 
-# Or via conda
-conda install -n scicompute octave -c conda-forge
-```
-
-#### Maxima Backend (Reserved)
-
-```bash
-# Ubuntu/Debian
-sudo apt install maxima gnuplot
-
-# macOS
-brew install maxima gnuplot
+# Windows: 下载 Octave 安装包
 ```
 
 #### Mathematica Backend
 
-- Install [Wolfram Mathematica](https://www.wolfram.com/mathematica/)
-- License required
+1. 从 [Wolfram 官网](https://www.wolfram.com/mathematica/) 购买并安装
+2. 配置路径：
+
+```bash
+export MATHEMATICA_KERNEL_PATH="/usr/local/Wolfram/Wolfram/14.3/Executables/WolframKernel"
+```
+
+### Step 3: Configure MCP Client
+
+创建配置文件 `.mcp.json`（放在项目根目录或用户目录）：
+
+```json
+{
+  "mcpServers": {
+    "scicompute": {
+      "command": "/path/to/.venv/bin/python",
+      "args": ["-m", "scicompute_mcp.server"],
+      "cwd": "/path/to/scicompute_mcp"
+    }
+  }
+}
+```
+
+### Environment Variables
+
+| 变量 | 说明 | 示例 |
+|------|------|------|
+| `SAGE_PATH` | SageMath 路径 | `$HOME/miniconda3/envs/sage/bin/sage` |
+| `MATHEMATICA_KERNEL_PATH` | WolframKernel 路径 | `/usr/local/Wolfram/Wolfram/14.3/Executables/WolframKernel` |
+| `SCICOMPUTE_PRIORITY` | 后端优先级 | `mathematica,sage,py_scientific` |
 
 ## Configuration
 

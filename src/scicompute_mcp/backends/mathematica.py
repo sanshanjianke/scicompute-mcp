@@ -1,4 +1,5 @@
 import base64
+import glob
 import os
 import tempfile
 import threading
@@ -11,12 +12,33 @@ _session: Optional[object] = None
 _lock = threading.Lock()
 
 
+def _find_mathematica_kernel() -> str:
+    """查找 WolframKernel 路径"""
+    # 优先环境变量
+    env_path = os.environ.get("MATHEMATICA_KERNEL_PATH")
+    if env_path and os.path.exists(env_path):
+        return env_path
+
+    # 自动查找常见路径
+    patterns = [
+        "/usr/local/Wolfram/Wolfram/*/Executables/WolframKernel",
+        "/Applications/Mathematica.app/Contents/MacOS/WolframKernel",
+        "C:/Program Files/Wolfram Research/Mathematica/*/WolframKernel.exe",
+    ]
+    for pattern in patterns:
+        matches = glob.glob(pattern)
+        if matches:
+            return matches[0]
+
+    return "/usr/local/Wolfram/Wolfram/14.3/Executables/WolframKernel"
+
+
 class MathematicaBackend(ComputeBackend):
     name = "mathematica"
     description = "Wolfram Mathematica - symbolic and numeric computation, visualization"
     capabilities = ["symbolic", "numeric", "plot", "image", "audio"]
 
-    KERNEL_PATH = "/usr/local/Wolfram/Wolfram/14.3/Executables/WolframKernel"
+    KERNEL_PATH = _find_mathematica_kernel()
 
     @property
     def is_running(self) -> bool:
