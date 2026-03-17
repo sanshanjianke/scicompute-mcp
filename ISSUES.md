@@ -118,3 +118,23 @@ class DocRAG:
 
 保留现有 `doc` 工具作为临时方案，RAG 系统作为长期目标。
 
+---
+
+## MATLAB 和 Maple 后端
+
+**状态**: Pending
+**优先级**: Medium
+**发现时间**: 2026-03-18
+
+### 问题描述
+
+计划添加 MATLAB 和 Maple 后端支持，但软件尚未安装完成。
+
+### 待办事项
+
+- [ ] 安装 MATLAB
+- [ ] 安装 Maple
+- [ ] 实现 MATLAB 后端（类似 Octave 但使用官方 API）
+- [ ] 实现 Maple 后端（符号计算）
+- [ ] 测试和文档
+
