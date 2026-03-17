@@ -33,7 +33,7 @@ MCP 工具返回 `ImageContent` 时，不同客户端表现不一致：
 
 ---
 
-## 后端路径硬编码问题
+## SageMath 绘图无法显示
 
 **状态**: Open
 **优先级**: Medium
@@ -41,33 +41,32 @@ MCP 工具返回 `ImageContent` 时，不同客户端表现不一致：
 
 ### 问题描述
 
-部分后端路径硬编码，用户换环境后无法使用：
+在所有客户端（OpenCode、Claude Code CLI）中，SageMath 后端的绘图都无法正常显示图片，而其他后端（Octave、R、Mathematica、py_scientific）正常。
 
-| 后端 | 当前状态 | 建议方案 |
-|------|----------|----------|
-| Mathematica | 硬编码 | 环境变量 + 自动查找 |
-| SageMath | 硬编码 | 环境变量 + 自动查找 |
-| Octave | ✅ 自动查找 | - |
-| R | ✅ 自动查找 | - |
+| 后端 | OpenCode | Claude Code CLI |
+|------|----------|-----------------|
+| Octave | ✅ | ✅ |
+| R | ✅ | ✅ |
+| Mathematica | ✅ | ✅ |
+| py_scientific | ✅ | ✅ |
+| SageMath | ❌ | ❌ |
 
-### 建议方案
+### 可能原因
 
-```python
-# 优先使用环境变量，否则自动查找
-SAGE_PATH = os.environ.get("SAGE_PATH") or shutil.which("sage") or "/usr/bin/sage"
-```
+SageMath 的 `_execute_plot()` 方法将代码包装为 matplotlib 格式，但 SageMath 原生 `plot()` 返回 Graphics 对象，两者不兼容。
+
+### 待调查
+
+- 检查 `_detect_plot()` 和 `_execute_plot()` 的逻辑
+- 测试 SageMath 原生绘图与 matplotlib 绑图的区别
+- 考虑移除 matplotlib 包装，让用户手动 `.save()`
 
 ---
 
-## 已解决
+## 后端路径硬编码问题
 
-### stop() 安全设计 (2026-03-18)
+**状态**: ✅ 已解决
+**解决时间**: 2026-03-18
 
-**问题**: AI 可能误调用 `stop()` 导致所有后端数据丢失。
+已实现自动路径检测，支持环境变量和常见安装位置。
 
-**解决方案**:
-- `stop()` 不带参数时只返回运行中的后端列表，不关闭任何进程
-- `stop("backend")` 关闭指定后端
-- `stop("ALL")` 关闭所有后端
-
-每个后端添加了 `is_running` 属性用于状态检测。
