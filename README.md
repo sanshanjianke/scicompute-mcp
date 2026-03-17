@@ -311,4 +311,4 @@ Look up NDSolve usage
 
 ## License
 
-MIT
+Unlicense - Public Domain
