@@ -217,12 +217,15 @@ List all available backends and their capabilities.
 
 ### stop(backend?)
 
-Stop backend process and clear all state. Useful to reset variables or free memory. Backend will restart automatically when needed.
+Stop backend process and clear all state. Useful to reset variables or free memory.
 
 ```python
-stop()          # Stop all backends
+stop()          # List running backends (does NOT stop any)
 stop("octave")  # Stop specific backend
+stop("ALL")     # Stop all running backends
 ```
+
+**Safety design**: Calling `stop()` without arguments will NOT stop any backends. It returns a list of running backends. This prevents accidental data loss.
 
 ### doc(symbol, backend?)
 

@@ -77,20 +77,72 @@ class BackendManager:
         return selected.evaluate(code, timeout)
 
     def stop(self, backend: Optional[str] = None) -> dict:
-        """Stop backend and clear all state. Can be used to reset or free memory."""
-        if backend:
-            backend_cls = self._backend_classes.get(backend)
-            if backend_cls:
-                instance = backend_cls()
-                instance.stop()
-                return {"success": True, "message": f"Reset {backend}"}
-            return {"success": False, "message": f"Backend '{backend}' not found"}
+        """Stop backend and clear all state.
 
-        for backend_cls in self._backend_classes.values():
+        不带参数时：返回正在运行的后端列表，不关闭任何进程
+        带后端名称时：关闭指定后端
+        带 "ALL" 时：关闭所有后端
+        """
+        # 获取正在运行的后端列表
+        running = []
+        for name, backend_cls in self._backend_classes.items():
             if backend_cls.is_available():
                 instance = backend_cls()
-                instance.stop()
-        return {"success": True, "message": "Reset all backends"}
+                if hasattr(instance, 'is_running') and instance.is_running:
+                    running.append(name)
+
+        # 不带参数：返回运行中的后端列表
+        if backend is None:
+            if running:
+                return {
+                    "success": True,
+                    "action": "list",
+                    "running_backends": running,
+                    "message": f"正在运行的后端: {running}。要关闭所有后端，请使用 stop('ALL')。要关闭单个后端，请使用 stop('后端名')。"
+                }
+            else:
+                return {
+                    "success": True,
+                    "action": "list",
+                    "running_backends": [],
+                    "message": "没有正在运行的后端。"
+                }
+
+        # 带 "ALL"：关闭所有
+        if backend.upper() == "ALL":
+            stopped = []
+            for name in running:
+                backend_cls = self._backend_classes.get(name)
+                if backend_cls:
+                    instance = backend_cls()
+                    instance.stop()
+                    stopped.append(name)
+            return {
+                "success": True,
+                "action": "stop_all",
+                "stopped": stopped,
+                "message": f"已关闭所有后端: {stopped}"
+            }
+
+        # 带具体后端名：关闭指定后端
+        backend_cls = self._backend_classes.get(backend)
+        if backend_cls:
+            if backend not in running:
+                return {
+                    "success": True,
+                    "action": "stop",
+                    "stopped": [],
+                    "message": f"后端 '{backend}' 未在运行，无需关闭。"
+                }
+            instance = backend_cls()
+            instance.stop()
+            return {
+                "success": True,
+                "action": "stop",
+                "stopped": [backend],
+                "message": f"已关闭后端: {backend}"
+            }
+        return {"success": False, "message": f"后端 '{backend}' 不存在。可用后端: {list(self._backend_classes.keys())}"}
 
     def doc(self, symbol: str, backend: Optional[str] = None) -> Result:
         selected, msg = self.select_backend(backend)

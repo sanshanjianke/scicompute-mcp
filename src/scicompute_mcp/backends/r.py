@@ -25,6 +25,10 @@ class RBackend(ComputeBackend):
     description = "R Statistical Computing - data analysis, statistics, visualization"
     capabilities = ["numeric", "plot"]
 
+    @property
+    def is_running(self) -> bool:
+        return _process is not None
+
     @classmethod
     def is_available(cls) -> bool:
         try:

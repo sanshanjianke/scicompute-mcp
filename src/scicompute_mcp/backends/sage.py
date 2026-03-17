@@ -28,6 +28,10 @@ class SageBackend(ComputeBackend):
     description = "SageMath - Number theory, algebra, symbolic/numeric computation"
     capabilities = ["symbolic", "numeric", "plot"]
 
+    @property
+    def is_running(self) -> bool:
+        return _process is not None
+
     @classmethod
     def is_available(cls) -> bool:
         return os.path.exists(SAGE_PATH)

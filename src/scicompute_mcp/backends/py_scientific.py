@@ -21,6 +21,10 @@ class PyScientificBackend(ComputeBackend):
     description = "Python Scientific Computing - NumPy, SciPy, SymPy, Matplotlib, Pandas"
     capabilities = ["symbolic", "numeric", "plot"]
 
+    @property
+    def is_running(self) -> bool:
+        return _globals is not None
+
     @classmethod
     def is_available(cls) -> bool:
         try:

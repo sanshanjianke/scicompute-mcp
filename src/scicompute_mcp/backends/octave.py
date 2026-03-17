@@ -20,6 +20,10 @@ class OctaveBackend(ComputeBackend):
     def __init__(self):
         pass  # 使用全局单例，无需实例变量
 
+    @property
+    def is_running(self) -> bool:
+        return _octave_session is not None
+
     @classmethod
     def is_available(cls) -> bool:
         """Check if octave command is available."""
@@ -166,9 +170,27 @@ end_try_catch
                 return
 
             try:
-                # restart 会清理变量并保持 session 可用
-                _octave_session.restart()
-                _octave_session.eval("graphics_toolkit('gnuplot')")
-                _octave_session.eval("set(0, 'DefaultFigureVisible', 'off')")
+                # 获取进程 PID 用于强制终止
+                try:
+                    pid = _octave_session._engine.repl.child.pid
+                except Exception:
+                    pid = None
+
+                # 尝试优雅关闭
+                try:
+                    _octave_session.eval("exit")
+                except Exception:
+                    pass
+
+                # 强制终止进程
+                if pid:
+                    try:
+                        import os
+                        import signal
+                        os.kill(pid, signal.SIGTERM)
+                    except Exception:
+                        pass
             except Exception:
                 pass
+            finally:
+                _octave_session = None

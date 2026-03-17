@@ -18,6 +18,10 @@ class MathematicaBackend(ComputeBackend):
 
     KERNEL_PATH = "/usr/local/Wolfram/Wolfram/14.3/Executables/WolframKernel"
 
+    @property
+    def is_running(self) -> bool:
+        return _session is not None
+
     @classmethod
     def is_available(cls) -> bool:
         return os.path.exists(cls.KERNEL_PATH)
