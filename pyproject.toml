@@ -47,9 +47,9 @@ dev = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/yourusername/scicompute-mcp"
-Repository = "https://github.com/yourusername/scicompute-mcp"
-Issues = "https://github.com/yourusername/scicompute-mcp/issues"
+Homepage = "https://github.com/sanshanjianke/scicompute-mcp"
+Repository = "https://github.com/sanshanjianke/scicompute-mcp"
+Issues = "https://github.com/sanshanjianke/scicompute-mcp/issues"
 
 [project.scripts]
 scicompute-mcp = "scicompute_mcp.server:main"
