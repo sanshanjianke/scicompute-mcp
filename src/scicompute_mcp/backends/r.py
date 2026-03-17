@@ -1,6 +1,6 @@
 """
 R Backend - R Statistical Computing
-支持 R 语言统计计算和绑图
+Supports R statistical computing and plotting
 """
 import base64
 import os
@@ -15,7 +15,7 @@ from typing import Optional
 
 from .base import ComputeBackend, Result, TextContent, ImageContent, ErrorContent
 
-# 全局单例
+# Global singleton
 _process: Optional[subprocess.Popen] = None
 _lock = threading.Lock()
 
@@ -88,7 +88,7 @@ class RBackend(ComputeBackend):
         if _process is None:
             return Result(success=False, content=[ErrorContent(message="R not started")])
 
-        # 检测是否包含绘图
+        # Detect if code contains plotting
         has_plot = self._detect_plot(code)
 
         temp_path = ""
@@ -128,7 +128,7 @@ class RBackend(ComputeBackend):
     def _execute_code(self, code: str, timeout: float) -> Result:
         code = code.strip()
 
-        # 判断是否是表达式（需要打印结果）还是语句（赋值、函数调用等）
+        # Determine if expression (needs print) or statement (assignment, function call, etc.)
         is_assignment = bool(re.match(r'^[a-zA-Z_][a-zA-Z0-9_\.]*\s*<-', code) or
                              re.match(r'^[a-zA-Z_][a-zA-Z0-9_\.]*\s*=', code))
         is_function_call = code.endswith(')') and not is_assignment
@@ -150,7 +150,7 @@ class RBackend(ComputeBackend):
         time.sleep(0.1)
         output = self._read_available(timeout)
 
-        # 清理输出
+        # Clean output
         result_text = self._clean_output(output)
 
         if not result_text:
@@ -159,7 +159,7 @@ class RBackend(ComputeBackend):
         return Result(success=True, content=[TextContent(text=result_text)])
 
     def _execute_plot(self, code: str, temp_path: str, timeout: float) -> Result:
-        # 包装绘图代码 - 确保 png() 和 dev.off() 正确
+        # Wrap plotting code - ensure png() and dev.off() are correct
         wrapped_code = f'png("{temp_path}", width=800, height=600, res=150)\n{code}\ndev.off()\n'
 
         _process.stdin.write(wrapped_code)
@@ -180,7 +180,7 @@ class RBackend(ComputeBackend):
         return Result(success=False, content=[ErrorContent(message="Plot file not created")])
 
     def _clean_output(self, output: str) -> str:
-        """清理 R 输出中的提示符、行号和输入回显"""
+        """Clean R output: remove prompts, line numbers, and input echo"""
         lines = output.strip().split('\n')
         cleaned = []
         for line in lines:
@@ -201,7 +201,7 @@ class RBackend(ComputeBackend):
         return '\n'.join(cleaned)
 
     def _detect_plot(self, code: str) -> bool:
-        """检测是否包含绘图函数"""
+        """Detect if code contains plotting functions"""
         plot_funcs = [
             'plot', 'hist', 'barplot', 'pie', 'boxplot', 'ggplot',
             'qplot', 'geom_', 'image', 'contour', 'persp', 'curve',

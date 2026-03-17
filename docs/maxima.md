@@ -1,120 +1,120 @@
-# Maxima 与 AI 协作指南
+# Maxima AI Collaboration Guide
 
-本文档面向已熟悉 Maxima 的用户，介绍如何通过与 AI 对话来使用 Maxima 后端。
+This guide is for users familiar with Maxima, introducing how to use the Maxima backend through AI conversation.
 
-> **注意**：Maxima 后端默认未启用。要启用，取消 `manager.py` 中的注释行。
+> **Note**: Maxima backend is disabled by default. To enable, uncomment the line in `manager.py`.
 
-## AI 能做什么
+## What AI Can Do
 
-- 符号计算（积分、微分、极限）
-- 方程求解
-- 矩阵运算
-- 2D/3D 绑图
+- Symbolic computation (integration, differentiation, limits)
+- Equation solving
+- Matrix operations
+- 2D/3D plotting
 
-## 与 AI 对话示例
+## Conversation Examples
 
-### 符号计算
-
-```
-用户：计算 ∫sin(x)dx
-AI：integrate(sin(x), x)
-结果：-cos(x)
-```
+### Symbolic Computation
 
 ```
-用户：求 x³e^x 的导数
-AI：diff(x^3 * exp(x), x)
-结果：3x²e^x + x³e^x
+User: Calculate ∫sin(x)dx
+AI: integrate(sin(x), x)
+Result: -cos(x)
 ```
 
-### 方程求解
-
 ```
-用户：解方程 x² - 5x + 6 = 0
-AI：solve(x^2 - 5*x + 6 = 0, x)
-结果：x = 2 或 x = 3
+User: Find derivative of x³e^x
+AI: diff(x^3 * exp(x), x)
+Result: 3x²e^x + x³e^x
 ```
 
-## AI 协作技巧
-
-### 1. 级数求和需要 simpsum
-
-Maxima 默认不计算无穷级数，需要添加 `simpsum`：
+### Equation Solving
 
 ```
-用户：计算 Σ(1/n²) 从 1 到 ∞
-AI：sum(1/n^2, n, 1, inf), simpsum
-结果：%pi^2/6
+User: Solve equation x² - 5x + 6 = 0
+AI: solve(x^2 - 5*x + 6 = 0, x)
+Result: x = 2 or x = 3
 ```
 
-### 2. 输出格式
+## AI Collaboration Tips
 
-Maxima 输出 ASCII 艺术格式，用 `string()` 转为线性：
+### 1. Series Summation Needs simpsum
+
+Maxima doesn't calculate infinite series by default, add `simpsum`:
 
 ```
-用户：用线性格式输出积分结果
-AI：string(integrate(x^2, x))
-结果：x^3/3
+User: Calculate Σ(1/n²) from 1 to ∞
+AI: sum(1/n^2, n, 1, inf), simpsum
+Result: %pi^2/6
 ```
 
-### 3. 静默执行
+### 2. Output Format
 
-用 `$` 结尾不显示中间结果：
+Maxima outputs ASCII art format, use `string()` for linear format:
+
+```
+User: Output integration result in linear format
+AI: string(integrate(x^2, x))
+Result: x^3/3
+```
+
+### 3. Silent Execution
+
+Use `$` suffix to suppress intermediate output:
 
 ```maxima
-x: 5$     % 不显示
-y: 10$    % 不显示
-x + y;    % 显示 15
+x: 5$     # No display
+y: 10$    # No display
+x + y;    # Displays 15
 ```
 
-## 与其他后端对比
+## Backend Comparison
 
-| 功能 | Maxima | SageMath | Mathematica |
-|------|--------|----------|-------------|
-| 符号计算 | ⭐ 强 | 强 | ⭐ 最强 |
-| 开源免费 | ✅ | ✅ | ❌ |
-| 输出格式 | ASCII 艺术 | LaTeX | 图形化 |
-| 学习曲线 | 中等 | 中等 | 陡峭 |
+| Feature | Maxima | SageMath | Mathematica |
+|---------|--------|----------|-------------|
+| Symbolic Computing | ⭐ Strong | Strong | ⭐ Best |
+| Open Source Free | ✅ | ✅ | ❌ |
+| Output Format | ASCII Art | LaTeX | Graphical |
+| Learning Curve | Medium | Medium | Steep |
 
-**适合 Maxima 的场景**：开源符号计算、教育用途、轻量级需求
+**Best for Maxima**: Open source symbolic computation, educational use, lightweight needs
 
-## 特殊注意事项
+## Special Notes
 
-### 常量符号
+### Constant Symbols
 
-| Maxima | 数学 |
+| Maxima | Math |
 |--------|------|
 | `%pi` | π |
 | `%e` | e |
-| `%i` | i (虚数单位) |
+| `%i` | i (imaginary unit) |
 | `inf` | ∞ |
-| `%` | 上一个结果 |
+| `%` | Previous result |
 
-### 语句结束符
+### Statement Terminators
 
-- `;` - 显示结果
-- `$` - 静默执行
+- `;` - Display result
+- `$` - Silent execution
 
-### 矩阵乘法
+### Matrix Multiplication
 
 ```maxima
 m: matrix([1, 2], [3, 4]);
-m . m;    % 矩阵乘法（注意是点号）
+m . m;    # Matrix multiplication (note the dot)
 ```
 
-## 常见问题
+## FAQ
 
-**Q: 级数求和不计算？**
+**Q: Series sum not evaluating?**
 
-添加 `simpsum` 选项：`sum(...), simpsum`
+Add `simpsum` option: `sum(...), simpsum`
 
-**Q: 输出乱码？**
+**Q: Output garbled?**
 
-Maxima 使用 ASCII 艺术格式。用 `string()` 转换或让 AI 解释结果。
+Maxima uses ASCII art format. Use `string()` to convert or ask AI to interpret the result.
 
-**Q: 如何启用 Maxima 后端？**
+**Q: How to enable Maxima backend?**
 
-编辑 `src/scicompute_mcp/manager.py`，取消注释：
+Edit `src/scicompute_mcp/manager.py`, uncomment:
 ```python
 self._backend_classes["maxima"] = MaximaBackend
 ```

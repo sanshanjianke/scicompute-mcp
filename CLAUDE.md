@@ -1,26 +1,26 @@
 # SciCompute MCP Server
 
-MCP 服务，为 AI 编程助手提供科学计算能力。
+MCP server providing scientific computing capabilities for AI coding assistants.
 
-## 可用后端
+## Available Backends
 
-| 后端 | 用途 |
-|------|------|
-| mathematica | 符号计算、数值计算、绘图 |
-| sage | 数论、代数、符号计算 |
-| py_scientific | Python 科学计算 (NumPy, SciPy, SymPy, Matplotlib) |
-| r | 统计计算、数据可视化 |
-| octave | 数值计算、绘图 |
+| Backend | Use Case |
+|---------|----------|
+| mathematica | Symbolic computation, numerical computing, plotting |
+| sage | Number theory, algebra, symbolic computation |
+| py_scientific | Python scientific computing (NumPy, SciPy, SymPy, Matplotlib) |
+| r | Statistical computing, data visualization |
+| octave | Numerical computing, plotting |
 
-## 使用方式
+## Usage
 
-通过 MCP 工具调用：
-- `mcp__scicompute__compute(code, backend)` - 执行计算代码
-- `mcp__scicompute__stop(backend)` - 停止后端进程
-- `mcp__scicompute__doc(symbol, backend)` - 查询文档
+Call via MCP tools:
+- `mcp__scicompute__compute(code, backend)` - Execute computation code
+- `mcp__scicompute__stop(backend)` - Stop backend process
+- `mcp__scicompute__doc(symbol, backend)` - Query documentation
 
-## 配置
+## Configuration
 
-后端路径配置在 `src/scicompute_mcp/backends/*.py` 中，可通过环境变量覆盖：
-- `SAGE_PATH` - SageMath 路径
-- `MATHEMATICA_KERNEL_PATH` - Mathematica 内核路径
+Backend paths are configured in `src/scicompute_mcp/backends/*.py`, can be overridden via environment variables:
+- `SAGE_PATH` - SageMath path
+- `MATHEMATICA_KERNEL_PATH` - Mathematica kernel path

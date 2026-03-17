@@ -21,7 +21,7 @@ class BackendManager:
     def _register_backend_classes(self):
         self._backend_classes["mathematica"] = MathematicaBackend
         self._backend_classes["octave"] = OctaveBackend
-        # maxima 保留但默认不启用，如需使用请取消下行注释
+        # maxima is reserved but disabled by default; uncomment to enable
         # self._backend_classes["maxima"] = MaximaBackend
         self._backend_classes["py_scientific"] = PyScientificBackend
         self._backend_classes["r"] = RBackend
@@ -79,11 +79,11 @@ class BackendManager:
     def stop(self, backend: Optional[str] = None) -> dict:
         """Stop backend and clear all state.
 
-        不带参数时：返回正在运行的后端列表，不关闭任何进程
-        带后端名称时：关闭指定后端
-        带 "ALL" 时：关闭所有后端
+        No arguments: Returns list of running backends, does NOT stop any.
+        With backend name: Stops the specified backend.
+        With "ALL": Stops all running backends.
         """
-        # 获取正在运行的后端列表
+        # Get list of running backends
         running = []
         for name, backend_cls in self._backend_classes.items():
             if backend_cls.is_available():
@@ -91,24 +91,24 @@ class BackendManager:
                 if hasattr(instance, 'is_running') and instance.is_running:
                     running.append(name)
 
-        # 不带参数：返回运行中的后端列表
+        # No argument: return running backends list
         if backend is None:
             if running:
                 return {
                     "success": True,
                     "action": "list",
                     "running_backends": running,
-                    "message": f"正在运行的后端: {running}。要关闭所有后端，请使用 stop('ALL')。要关闭单个后端，请使用 stop('后端名')。"
+                    "message": f"Running backends: {running}. Use stop('ALL') to stop all. Use stop('backend_name') to stop a specific backend."
                 }
             else:
                 return {
                     "success": True,
                     "action": "list",
                     "running_backends": [],
-                    "message": "没有正在运行的后端。"
+                    "message": "No running backends."
                 }
 
-        # 带 "ALL"：关闭所有
+        # With "ALL": stop all backends
         if backend.upper() == "ALL":
             stopped = []
             for name in running:
@@ -121,10 +121,10 @@ class BackendManager:
                 "success": True,
                 "action": "stop_all",
                 "stopped": stopped,
-                "message": f"已关闭所有后端: {stopped}"
+                "message": f"Stopped all backends: {stopped}"
             }
 
-        # 带具体后端名：关闭指定后端
+        # With specific backend name: stop that backend
         backend_cls = self._backend_classes.get(backend)
         if backend_cls:
             if backend not in running:
@@ -132,7 +132,7 @@ class BackendManager:
                     "success": True,
                     "action": "stop",
                     "stopped": [],
-                    "message": f"后端 '{backend}' 未在运行，无需关闭。"
+                    "message": f"Backend '{backend}' is not running, no need to stop."
                 }
             instance = backend_cls()
             instance.stop()
@@ -140,9 +140,9 @@ class BackendManager:
                 "success": True,
                 "action": "stop",
                 "stopped": [backend],
-                "message": f"已关闭后端: {backend}"
+                "message": f"Stopped backend: {backend}"
             }
-        return {"success": False, "message": f"后端 '{backend}' 不存在。可用后端: {list(self._backend_classes.keys())}"}
+        return {"success": False, "message": f"Backend '{backend}' not found. Available: {list(self._backend_classes.keys())}"}
 
     def doc(self, symbol: str, backend: Optional[str] = None) -> Result:
         selected, msg = self.select_backend(backend)

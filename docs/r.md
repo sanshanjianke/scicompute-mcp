@@ -1,109 +1,109 @@
-# R 与 AI 协作指南
+# R AI Collaboration Guide
 
-本文档面向已熟悉 R 的用户，介绍如何通过与 AI 对话来使用 R 后端。
+This guide is for users familiar with R, introducing how to use the R backend through AI conversation.
 
-## AI 能做什么
+## What AI Can Do
 
-- 执行 R 代码进行统计分析
-- 绑制统计图形
-- 保持会话状态（变量持久化）
-- 查询 R 函数文档
+- Execute R code for statistical analysis
+- Generate statistical plots
+- Maintain session state (variable persistence)
+- Query R function documentation
 
-## 与 AI 对话示例
+## Conversation Examples
 
-### 统计分析
-
-```
-用户：生成 1000 个正态分布随机数，计算均值和标准差
-AI：data <- rnorm(1000)
-     mean(data)  # 约 0
-     sd(data)    # 约 1
-```
+### Statistical Analysis
 
 ```
-用户：做一组数据的 t 检验
-AI：t.test(x, mu=5)
-(输出检验结果)
-```
-
-### 绑图
-
-```
-用户：画一个正态分布的直方图
-AI：hist(rnorm(1000), main="Normal Distribution")
-(图片自动显示)
+User: Generate 1000 normal random numbers and calculate mean and standard deviation
+AI: data <- rnorm(1000)
+    mean(data)  # Approximately 0
+    sd(data)    # Approximately 1
 ```
 
 ```
-用户：画 x 和 y 的散点图，加回归线
-AI：plot(x, y)
-     abline(lm(y ~ x), col="red")
+User: Perform t-test on a dataset
+AI: t.test(x, mu=5)
+(Output test results)
 ```
 
-### 数据处理
+### Plotting
 
 ```
-用户：筛选 age > 25 的数据
-AI：subset(df, age > 25)
+User: Plot a histogram of normal distribution
+AI: hist(rnorm(1000), main="Normal Distribution")
+(Image automatically displayed)
 ```
 
-## AI 协作技巧
-
-### 1. 描述统计需求，AI 写代码
-
 ```
-好：计算这组数据的中位数和四分位数
-差：median(x); quantile(x, 0.25)  # 你自己写了代码
+User: Plot scatter plot of x and y with regression line
+AI: plot(x, y)
+    abline(lm(y ~ x), col="red")
 ```
 
-### 2. 利用会话持久性
+### Data Processing
 
 ```
-用户：读取 data.csv 文件
-AI：df <- read.csv("data.csv")
-
-用户：分析 age 列的分布
-AI：hist(df$age)  # 直接使用之前读取的数据
+User: Filter data where age > 25
+AI: subset(df, age > 25)
 ```
 
-### 3. 指定后端
+## AI Collaboration Tips
+
+### 1. Describe Statistical Needs, AI Writes Code
 
 ```
-用 R 做线性回归分析
-用 Python 画这个图
+Good: Calculate median and quartiles of this data
+Bad: median(x); quantile(x, 0.25)  # You wrote the code yourself
 ```
 
-### 4. 分步工作流
+### 2. Leverage Session Persistence
 
 ```
-用户：生成 100 个随机数
-AI：x <- rnorm(100)
+User: Read data.csv file
+AI: df <- read.csv("data.csv")
 
-用户：画直方图
-AI：hist(x)  # 使用之前生成的数据
-
-用户：检验是否正态分布
-AI：shapiro.test(x)
+User: Analyze the distribution of age column
+AI: hist(df$age)  # Uses previously read data directly
 ```
 
-## 绘图注意事项
+### 3. Specify Backend
 
-### 基础绑图
+```
+Use R for linear regression analysis
+Use Python to plot this
+```
 
-R 的基础 `plot()` 函数会自动生成图片：
+### 4. Step-by-step Workflow
+
+```
+User: Generate 100 random numbers
+AI: x <- rnorm(100)
+
+User: Plot histogram
+AI: hist(x)  # Uses previously generated data
+
+User: Test for normality
+AI: shapiro.test(x)
+```
+
+## Plotting Notes
+
+### Basic Plotting
+
+R's basic `plot()` function automatically generates images:
 
 ```r
-# 散点图
+# Scatter plot
 plot(x, y)
 
-# 直方图
+# Histogram
 hist(rnorm(1000))
 
-# 箱线图
+# Box plot
 boxplot(x, y)
 ```
 
-### 多图布局
+### Multiple Plots
 
 ```r
 par(mfrow=c(2,2))
@@ -114,56 +114,56 @@ boxplot(rnorm(50))
 
 ### ggplot2
 
-如果安装了 ggplot2，可以直接使用：
+If ggplot2 is installed, you can use it directly:
 
 ```r
 library(ggplot2)
 ggplot(df, aes(x, y)) + geom_point() + geom_smooth()
 ```
 
-## 常见统计分析场景
+## Common Statistical Analysis Scenarios
 
-### 假设检验
-
-```
-用户：检验两组数据是否有显著差异
-AI：t.test(group1, group2)
-```
-
-### 回归分析
+### Hypothesis Testing
 
 ```
-用户：做 y 对 x 的线性回归
-AI：model <- lm(y ~ x)
-     summary(model)
+User: Test if two groups have significant difference
+AI: t.test(group1, group2)
 ```
 
-### 方差分析
+### Regression Analysis
 
 ```
-用户：做单因素方差分析
-AI：aov(result ~ group, data=df)
+User: Perform linear regression of y on x
+AI: model <- lm(y ~ x)
+    summary(model)
 ```
 
-## 与其他后端对比
+### ANOVA
 
-| 功能 | R | Python Scientific | SageMath |
-|------|---|-------------------|----------|
-| 统计分析 | ⭐ 最强 | 强 | 一般 |
-| 数据可视化 | 强 | 强 | 强 |
-| 机器学习 | 一般 | ⭐ 最强 | 一般 |
-| 符号计算 | 一般 | 强 | ⭐ 最强 |
+```
+User: Perform one-way ANOVA
+AI: aov(result ~ group, data=df)
+```
 
-## 常见问题
+## Backend Comparison
 
-**Q: 中文显示乱码？**
+| Feature | R | Python Scientific | SageMath |
+|---------|---|-------------------|----------|
+| Statistical Analysis | ⭐ Best | Strong | Good |
+| Data Visualization | Strong | Strong | Strong |
+| Machine Learning | Good | ⭐ Best | Good |
+| Symbolic Computation | Good | Strong | ⭐ Best |
 
-A: R 绑图对中文支持有限，建议使用英文标签或安装中文字体。
+## FAQ
 
-**Q: 包没安装？**
+**Q: Chinese characters garbled?**
 
-A: 告诉 AI："安装并加载 dplyr 包"，AI 会执行 `install.packages("dplyr")`。
+A: R plotting has limited Chinese support. Use English labels or install Chinese fonts.
 
-**Q: 数据文件路径？**
+**Q: Package not installed?**
 
-A: 使用绝对路径，或相对于项目根目录的路径。AI 可以帮你读取本地文件。
+A: Tell AI: "Install and load dplyr package", AI will execute `install.packages("dplyr")`.
+
+**Q: Data file path?**
+
+A: Use absolute paths, or paths relative to project root. AI can help read local files.

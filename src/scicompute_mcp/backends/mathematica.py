@@ -7,7 +7,7 @@ from typing import Optional
 
 from .base import ComputeBackend, Result, TextContent, ImageContent, ErrorContent
 
-# 全局单例
+# Global singleton
 _session: Optional[object] = None
 _lock = threading.Lock()
 

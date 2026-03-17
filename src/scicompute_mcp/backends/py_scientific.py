@@ -1,6 +1,6 @@
 """
 Python Scientific Computing Backend
-整合 NumPy, SciPy, SymPy, Matplotlib 等科学计算库
+Integrates NumPy, SciPy, SymPy, Matplotlib, and other scientific libraries
 """
 import base64
 import io
@@ -11,7 +11,7 @@ from typing import Optional
 
 from .base import ComputeBackend, Result, TextContent, ImageContent, ErrorContent
 
-# 全局状态
+# Global state
 _globals: Optional[dict] = None
 _lock = threading.Lock()
 
@@ -47,10 +47,10 @@ class PyScientificBackend(ComputeBackend):
                 return False
 
     def _create_globals(self) -> dict:
-        """创建全局命名空间，预导入常用科学计算库"""
+        """Create global namespace with pre-imported scientific libraries"""
         g = {'__builtins__': __builtins__}
 
-        # NumPy - 数值计算
+        # NumPy - numerical computing
         try:
             import numpy as np
             g['numpy'] = np
@@ -58,7 +58,7 @@ class PyScientificBackend(ComputeBackend):
         except ImportError:
             pass
 
-        # SciPy - 科学计算
+        # SciPy - scientific computing
         try:
             import scipy
             g['scipy'] = scipy
@@ -73,12 +73,12 @@ class PyScientificBackend(ComputeBackend):
         except ImportError:
             pass
 
-        # SymPy - 符号计算
+        # SymPy - symbolic computing
         try:
             import sympy as sp
             g['sympy'] = sp
             g['sp'] = sp
-            # 常用符号函数直接导入
+            # Import commonly used symbolic functions directly
             for name in ['sin', 'cos', 'tan', 'exp', 'log', 'sqrt', 'diff',
                          'integrate', 'limit', 'series', 'expand', 'factor',
                          'simplify', 'solve', 'dsolve', 'symbols', 'Symbol',
@@ -87,7 +87,7 @@ class PyScientificBackend(ComputeBackend):
                     g[name] = getattr(sp, name)
                 except AttributeError:
                     pass
-            # 特殊符号
+            # Special symbols
             g['pi'] = sp.pi
             g['E'] = sp.E
             g['oo'] = sp.oo
@@ -95,10 +95,10 @@ class PyScientificBackend(ComputeBackend):
         except ImportError:
             pass
 
-        # Matplotlib - 绑图
+        # Matplotlib - plotting
         try:
             import matplotlib
-            matplotlib.use('Agg')  # 非交互式后端
+            matplotlib.use('Agg')  # Non-interactive backend
             import matplotlib.pyplot as plt
             g['matplotlib'] = matplotlib
             g['plt'] = plt
@@ -106,7 +106,7 @@ class PyScientificBackend(ComputeBackend):
         except ImportError:
             pass
 
-        # pandas - 数据分析
+        # pandas - data analysis
         try:
             import pandas as pd
             g['pandas'] = pd
@@ -122,47 +122,47 @@ class PyScientificBackend(ComputeBackend):
             return Result(success=False, content=[ErrorContent(message="Python backend not started")])
 
         try:
-            # 清理之前的图形
+            # Clear previous figures
             if 'plt' in _globals:
                 _globals['plt'].close('all')
 
-            # 判断是表达式还是语句
+            # Determine if code is expression or statement
             code = code.strip()
             lines = code.split('\n')
 
-            # 检查最后一行是否是表达式（可以被求值）
+            # Check if last line is an expression (can be evaluated)
             last_line = lines[-1].strip() if lines else ""
             is_expr = False
 
-            # 如果不是赋值、import、函数定义等，尝试作为表达式求值
+            # If not assignment, import, function definition, etc., try as expression
             if last_line and not any(last_line.startswith(kw) or last_line.endswith(':')
                                       for kw in ['=', 'import ', 'from ', 'def ', 'class ',
                                                  'for ', 'while ', 'if ', 'with ', 'try']):
-                # 尝试用 eval
+                # Try with eval
                 try:
                     compile(last_line, '<string>', 'eval')
                     is_expr = True
                 except SyntaxError:
                     is_expr = False
 
-            # 执行代码
+            # Execute code
             if len(lines) > 1:
-                # 多行代码：先执行前面的行
+                # Multi-line code: execute preceding lines first
                 exec('\n'.join(lines[:-1]) if is_expr else code, _globals)
 
             if is_expr:
-                # 最后一行用 eval 求值
+                # Evaluate last line with eval
                 result = eval(last_line, _globals)
-                # 先检查图形
+                # Check for plots first
                 img_result = self._check_plot()
                 if img_result:
                     return img_result
                 return self._format_result(result)
             else:
-                # 单条语句用 exec
+                # Single statement with exec
                 if len(lines) == 1:
                     exec(code, _globals)
-                # 检查图形
+                # Check for plots
                 img_result = self._check_plot()
                 if img_result:
                     return img_result
@@ -179,7 +179,7 @@ class PyScientificBackend(ComputeBackend):
             return Result(success=False, content=[ErrorContent(message='\n'.join(relevant))])
 
     def _check_plot(self) -> Optional[Result]:
-        """检查是否生成了图形，如果有则返回 ImageContent"""
+        """Check if a plot was generated, return ImageContent if so"""
         global _globals
         if _globals and 'plt' in _globals:
             figs = _globals['plt'].get_fignums()
@@ -193,11 +193,11 @@ class PyScientificBackend(ComputeBackend):
         return None
 
     def _format_result(self, result) -> Result:
-        """格式化输出结果"""
+        """Format output result"""
         if result is None:
             return Result(success=True, content=[TextContent(text="None")])
 
-        # SymPy 表达式
+        # SymPy expressions
         try:
             import sympy as sp
             if isinstance(result, (sp.Expr, sp.Eq, sp.Matrix, sp.Basic)):
@@ -205,7 +205,7 @@ class PyScientificBackend(ComputeBackend):
         except ImportError:
             pass
 
-        # NumPy 数组
+        # NumPy arrays
         try:
             import numpy as np
             if isinstance(result, np.ndarray):
@@ -221,7 +221,7 @@ class PyScientificBackend(ComputeBackend):
         except ImportError:
             pass
 
-        # 基本类型
+        # Basic types
         if isinstance(result, (int, float, str, bool, list, tuple, dict)):
             return Result(success=True, content=[TextContent(text=str(result))])
 

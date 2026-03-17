@@ -1,125 +1,125 @@
-# SageMath 与 AI 协作指南
+# SageMath AI Collaboration Guide
 
-本文档面向已熟悉 SageMath 的用户，介绍如何通过与 AI 对话来使用 SageMath 后端。
+This guide is for users familiar with SageMath, introducing how to use the SageMath backend through AI conversation.
 
-## AI 能做什么
+## What AI Can Do
 
-- 执行 SageMath 代码并返回结果
-- 绘制图形（自动保存并显示）
-- 保持会话状态（变量在多次调用间保持）
-- 查询函数文档
+- Execute SageMath code and return results
+- Generate plots (automatically saved and displayed)
+- Maintain session state (variables persist across calls)
+- Query function documentation
 
-## 与 AI 对话示例
+## Conversation Examples
 
-### 基本计算
-
-```
-用户：计算 ∫sin(x)dx 从 0 到 π
-AI：(自动选择 SageMath 后端执行 integrate(sin(x), x, 0, pi))
-结果：2
-```
+### Basic Computation
 
 ```
-用户：分解 100 的质因数
-AI：factor(100) → 2^2 * 5^2
+User: Calculate ∫sin(x)dx from 0 to π
+AI: (Auto-selects SageMath backend, executes integrate(sin(x), x, 0, pi))
+Result: 2
 ```
 
-### 符号计算
-
 ```
-用户：解微分方程 y' + y = x
-AI：(使用 desolve)
-结果：y(x) = x - 1 + C*e^(-x)
+User: Factor 100 into prime factors
+AI: factor(100) → 2^2 * 5^2
 ```
 
-### 绘图
+### Symbolic Computation
 
 ```
-用户：画一个 sin(x) 在 0 到 2π 的图
-AI：plot(sin(x), (x, 0, 2*pi))
-(图片自动显示)
+User: Solve the differential equation y' + y = x
+AI: (Uses desolve)
+Result: y(x) = x - 1 + C*e^(-x)
 ```
 
-## AI 协作技巧
-
-### 1. 用自然语言描述问题
-
-不需要写完整代码，AI 会帮你转换：
+### Plotting
 
 ```
-好：求 x² + 2x + 1 = 0 的根
-差：solve(x^2 + 2*x + 1 == 0, x)  # 你自己写了代码
+User: Plot sin(x) from 0 to 2π
+AI: plot(sin(x), (x, 0, 2*pi))
+(Image automatically displayed)
 ```
 
-### 2. 指定后端（可选）
+## AI Collaboration Tips
 
-如果有多个后端可用，可以指定：
+### 1. Describe Problems in Natural Language
 
-```
-用 SageMath 计算 integrate(x^2, x)
-用 Mathematica 画 Plot[Sin[x], {x, 0, 10}]
-```
-
-### 3. 利用会话持久性
+No need to write complete code, AI will convert for you:
 
 ```
-用户：定义 f(x) = x^2 + sin(x)
-AI：(已定义)
-
-用户：求 f 在 x=2 处的值
-AI：f(2) = 4 + sin(2)
+Good: Find roots of x² + 2x + 1 = 0
+Bad: solve(x^2 + 2*x + 1 == 0, x)  # You wrote the code yourself
 ```
 
-变量在会话中保持，可以分步工作。
+### 2. Specify Backend (Optional)
 
-### 4. 查询文档
+If multiple backends are available, you can specify:
 
 ```
-用户：integrate 函数怎么用？
-AI：(调用 doc("integrate", "sage"))
+Use SageMath to calculate integrate(x^2, x)
+Use Mathematica to plot Plot[Sin[x], {x, 0, 10}]
 ```
 
-## 注意事项
+### 3. Leverage Session Persistence
 
-### 绘图需要显式调用
+```
+User: Define f(x) = x^2 + sin(x)
+AI: (Defined)
 
-SageMath 原生 `plot()` 返回图形对象，需保存：
+User: Find f at x=2
+AI: f(2) = 4 + sin(2)
+```
+
+Variables persist in session, you can work step by step.
+
+### 4. Query Documentation
+
+```
+User: How to use the integrate function?
+AI: (Calls doc("integrate", "sage"))
+```
+
+## Notes
+
+### Plotting Requires Explicit Call
+
+SageMath native `plot()` returns a Graphics object, needs saving:
 
 ```sage
-# 方式 1：让 AI 自动处理（推荐）
+# Method 1: Let AI handle automatically (recommended)
 plot(sin(x), (x, 0, 2*pi))
 
-# 方式 2：手动保存
+# Method 2: Save manually
 p = plot(sin(x), (x, 0, 2*pi))
 p.save("/tmp/myplot.png")
 ```
 
-### 会话管理
+### Session Management
 
-- 变量在多次调用间保持
-- 要清除变量，告诉 AI："重置 SageMath 会话"
-- 要关闭后端：`stop("sage")`
+- Variables persist across calls
+- To clear variables, tell AI: "Reset SageMath session"
+- To close backend: `stop("sage")`
 
-## 与其他后端对比
+## Backend Comparison
 
-| 功能 | SageMath | Mathematica | Python Scientific |
-|------|----------|-------------|-------------------|
-| 数论 | ⭐ 最强 | 一般 | 一般 |
-| 符号积分 | 强 | ⭐ 最强 | 一般 |
-| 微分方程 | 强 | ⭐ 最强 | 一般 |
-| 绘图 | 强 | ⭐ 最强 | 强 |
-| 开源 | ✅ | ❌ | ✅ |
+| Feature | SageMath | Mathematica | Python Scientific |
+|---------|----------|-------------|-------------------|
+| Number Theory | ⭐ Best | Good | Good |
+| Symbolic Integration | Strong | ⭐ Best | Good |
+| Differential Equations | Strong | ⭐ Best | Good |
+| Plotting | Strong | ⭐ Best | Strong |
+| Open Source | ✅ | ❌ | ✅ |
 
-## 常见问题
+## FAQ
 
-**Q: AI 说 SageMath 不可用？**
+**Q: AI says SageMath is unavailable?**
 
-A: 确保已安装 SageMath（见 README.md），后端会自动检测路径。
+A: Ensure SageMath is installed (see README.md). Backend will auto-detect the path.
 
-**Q: 图没显示？**
+**Q: Plot not showing?**
 
-A: 图片已生成，可能是客户端显示问题。检查 `/tmp/` 目录下的 png 文件。
+A: Image was generated, may be client display issue. Check PNG files in `/tmp/` directory.
 
-**Q: 计算超时？**
+**Q: Calculation timeout?**
 
-A: 默认超时 30 秒，告诉 AI："用更长的超时时间"或简化问题。
+A: Default timeout is 30 seconds. Tell AI: "Use longer timeout" or simplify the problem.

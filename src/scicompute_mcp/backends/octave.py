@@ -7,7 +7,7 @@ from typing import Optional
 
 from .base import ComputeBackend, Result, TextContent, ImageContent, ErrorContent
 
-# 全局单例 session
+# Global singleton session
 _octave_session = None
 _octave_lock = threading.Lock()
 
@@ -18,7 +18,7 @@ class OctaveBackend(ComputeBackend):
     capabilities = ["numeric", "plot"]
 
     def __init__(self):
-        pass  # 使用全局单例，无需实例变量
+        pass  # Uses global singleton, no instance variables needed
 
     @property
     def is_running(self) -> bool:

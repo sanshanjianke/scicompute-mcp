@@ -1,94 +1,94 @@
-# Octave 与 AI 协作指南
+# Octave AI Collaboration Guide
 
-本文档面向已熟悉 MATLAB/Octave 的用户，介绍如何通过与 AI 对话来使用 Octave 后端。
+This guide is for users familiar with MATLAB/Octave, introducing how to use the Octave backend through AI conversation.
 
-## AI 能做什么
+## What AI Can Do
 
-- 执行 Octave/MATLAB 代码
-- 矩阵运算和数值计算
-- 绑制 2D/3D 图形
-- 保持会话状态（变量持久化）
+- Execute Octave/MATLAB code
+- Matrix operations and numerical computation
+- Generate 2D/3D plots
+- Maintain session state (variable persistence)
 
-## 与 AI 对话示例
+## Conversation Examples
 
-### 矩阵运算
-
-```
-用户：计算矩阵 [[1,2],[3,4]] 的逆矩阵
-AI：A = [1 2; 3 4];
-     inv(A)
-结果：[[-2, 1], [1.5, -0.5]]
-```
+### Matrix Operations
 
 ```
-用户：解线性方程组 Ax = b，A=[[1,2],[3,4]]，b=[5,6]
-AI：A = [1 2; 3 4];
-     b = [5; 6];
-     A \ b
+User: Calculate the inverse of matrix [[1,2],[3,4]]
+AI: A = [1 2; 3 4];
+    inv(A)
+Result: [[-2, 1], [1.5, -0.5]]
 ```
 
-### 数值计算
-
 ```
-用户：计算 sin(x) 在 0 到 π 的积分，用数值方法
-AI：quad(@(x) sin(x), 0, pi)
-结果：约 2.0
-```
-
-### 绑图
-
-```
-用户：画 sin(x) 和 cos(x) 在 0 到 2π 的图
-AI：x = 0:0.1:2*pi;
-     plot(x, sin(x), 'b-', x, cos(x), 'r--')
-     legend('sin', 'cos')
-(图片自动显示)
+User: Solve linear system Ax = b, A=[[1,2],[3,4]], b=[5,6]
+AI: A = [1 2; 3 4];
+    b = [5; 6];
+    A \ b
 ```
 
-## AI 协作技巧
-
-### 1. 用自然语言描述问题
+### Numerical Computation
 
 ```
-好：求矩阵的特征值和特征向量
-差：eig(A)  # 你自己写了代码
+User: Calculate integral of sin(x) from 0 to π using numerical methods
+AI: quad(@(x) sin(x), 0, pi)
+Result: Approximately 2.0
 ```
 
-### 2. 分步工作流
+### Plotting
 
 ```
-用户：创建一个 3x3 的随机矩阵
-AI：A = rand(3, 3)
-
-用户：计算它的特征值
-AI：eig(A)
-
-用户：画特征值的散点图
-AI：e = eig(A);
-     scatter(real(e), imag(e))
+User: Plot sin(x) and cos(x) from 0 to 2π
+AI: x = 0:0.1:2*pi;
+    plot(x, sin(x), 'b-', x, cos(x), 'r--')
+    legend('sin', 'cos')
+(Image automatically displayed)
 ```
 
-### 3. 指定后端（与 MATLAB 对比）
+## AI Collaboration Tips
+
+### 1. Describe Problems in Natural Language
 
 ```
-用 Octave 计算这个积分
-用 Mathematica 做符号积分
+Good: Find eigenvalues and eigenvectors of a matrix
+Bad: eig(A)  # You wrote the code yourself
 ```
 
-## 绑图注意事项
+### 2. Step-by-step Workflow
 
-### 基础绑图
+```
+User: Create a 3x3 random matrix
+AI: A = rand(3, 3)
+
+User: Calculate its eigenvalues
+AI: eig(A)
+
+User: Plot eigenvalues as scatter
+AI: e = eig(A);
+    scatter(real(e), imag(e))
+```
+
+### 3. Specify Backend (vs MATLAB)
+
+```
+Use Octave to calculate this integral
+Use Mathematica for symbolic integration
+```
+
+## Plotting Notes
+
+### Basic Plotting
 
 ```octave
 x = 0:0.1:2*pi;
-plot(x, sin(x))          % 自动保存并显示
+plot(x, sin(x))          # Automatically saved and displayed
 title('Sin Function')
 xlabel('X')
 ylabel('Y')
 grid on
 ```
 
-### 多图画在一起
+### Multiple Curves
 
 ```octave
 x = 0:0.1:2*pi;
@@ -96,7 +96,7 @@ plot(x, sin(x), 'b-', x, cos(x), 'r--')
 legend('sin', 'cos')
 ```
 
-### 3D 图形
+### 3D Plotting
 
 ```octave
 [X, Y] = meshgrid(-2:0.2:2);
@@ -104,69 +104,69 @@ Z = X .* exp(-X.^2 - Y.^2);
 surf(X, Y, Z)
 ```
 
-### 子图
+### Subplots
 
 ```octave
 subplot(2,2,1); plot(x, sin(x)); title('Sin')
 subplot(2,2,2); plot(x, cos(x)); title('Cos')
 ```
 
-## 与其他后端对比
+## Backend Comparison
 
-| 功能 | Octave | Mathematica | Python Scientific |
-|------|--------|-------------|-------------------|
-| 数值计算 | ⭐ 强 | 强 | 强 |
-| 矩阵运算 | ⭐ 最强 | 强 | 强 |
-| 符号计算 | ❌ | ⭐ 最强 | 强 |
-| 3D 绑图 | 强 | ⭐ 最强 | 强 |
-| MATLAB 兼容 | ✅ | ❌ | ❌ |
-| 开源免费 | ✅ | ❌ | ✅ |
+| Feature | Octave | Mathematica | Python Scientific |
+|---------|--------|-------------|-------------------|
+| Numerical Computing | ⭐ Strong | Strong | Strong |
+| Matrix Operations | ⭐ Best | Strong | Strong |
+| Symbolic Computing | ❌ | ⭐ Best | Strong |
+| 3D Plotting | Strong | ⭐ Best | Strong |
+| MATLAB Compatible | ✅ | ❌ | ❌ |
+| Open Source Free | ✅ | ❌ | ✅ |
 
-**适合 Octave 的场景**：数值计算、矩阵运算、MATLAB 代码迁移
+**Best for Octave**: Numerical computing, matrix operations, MATLAB code migration
 
-## 特殊注意事项
+## Special Notes
 
-### 注释位置
+### Comment Placement
 
-Octave 对行内注释处理可能有问题：
+Octave may have issues with inline comments:
 
 ```octave
-% 推荐写法（注释单独一行）
-% 计算平方
+# Recommended (comment on separate line)
+# Calculate square
 y = x^2;
 
-% 可能出错的写法
-y = x^2; % 平方
+# May cause errors
+y = x^2; % Square
 ```
 
-### 索引从 1 开始
+### Indexing Starts at 1
 
 ```octave
 v = [10, 20, 30];
-v(1)   % 返回 10（第一个元素）
-v(0)   % 错误！
+v(1)   # Returns 10 (first element)
+v(0)   # Error!
 ```
 
-### 矩阵运算 vs 元素运算
+### Matrix vs Element Operations
 
 ```octave
-A * B    % 矩阵乘法
-A .* B   % 元素对应相乘
+A * B    # Matrix multiplication
+A .* B   # Element-wise multiplication
 
-A ^ 2    % 矩阵平方
-A .^ 2   % 每个元素平方
+A ^ 2    # Matrix square
+A .^ 2   # Each element squared
 ```
 
-## 常见问题
+## FAQ
 
-**Q: 如何清除变量？**
+**Q: How to clear variables?**
 
-告诉 AI："清除所有变量" 或直接说 `clear`
+Tell AI: "Clear all variables" or directly say `clear`
 
-**Q: 图形不显示？**
+**Q: Plot not displaying?**
 
-检查 `/tmp/` 目录下是否生成了 PNG 文件。可能是客户端显示问题。
+Check if PNG files were generated in `/tmp/` directory. May be client display issue.
 
-**Q: MATLAB 代码能用吗？**
+**Q: Can MATLAB code be used?**
 
-大部分 MATLAB 代码兼容。不支持的函数 AI 会提示。
+Most MATLAB code is compatible. Unsupported functions will be flagged by AI.

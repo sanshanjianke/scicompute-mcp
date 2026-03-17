@@ -1,6 +1,6 @@
 """
 SageMath Backend - Open Source Mathematics Software
-数论、群论、符号计算、数值计算整合环境
+Number theory, algebra, symbolic and numeric computation
 """
 import base64
 import os
@@ -16,7 +16,7 @@ from typing import Optional
 
 from .base import ComputeBackend, Result, TextContent, ImageContent, ErrorContent
 
-# 全局单例
+# Global singleton
 _process: Optional[subprocess.Popen] = None
 _lock = threading.Lock()
 
@@ -98,7 +98,7 @@ class SageBackend(ComputeBackend):
                 time.sleep(1.0)  # 等待欢迎界面完全输出
                 self._read_available(0.5)
 
-                # 发送空语句清理欢迎界面
+                # Send empty statement to clear welcome banner
                 _process.stdin.write("None\n")
                 _process.stdin.flush()
                 time.sleep(0.3)
@@ -166,7 +166,7 @@ class SageBackend(ComputeBackend):
     def _execute_code(self, code: str, timeout: float) -> Result:
         code = code.strip()
 
-        # 判断是否是表达式（需要打印）还是语句
+        # Determine if code is expression (needs print) or statement
         is_assignment = '=' in code and not '==' in code
         is_function_def = code.startswith('def ') or code.startswith('lambda')
 
@@ -212,7 +212,7 @@ plt.close()
         return Result(success=False, content=[ErrorContent(message="Plot file not created")])
 
     def _clean_output(self, output: str) -> str:
-        """清理 Sage 输出"""
+        """Clean Sage output"""
         lines = output.strip().split('\n')
         cleaned = []
         for line in lines:
