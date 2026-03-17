@@ -40,4 +40,14 @@ Thumbs.db
 
 # Local config
 .env
-*.localoctave-workspace
+*.local
+
+# MCP local configs (use configs/ templates instead)
+.mcp.json
+.claude/
+.opencode/
+
+# Temporary files
+octave-workspace
+*.tmp
+maxima_sin_plot.png
