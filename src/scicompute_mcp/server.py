@@ -21,7 +21,7 @@ def _cleanup():
     if _shutdown_requested:
         return
     _shutdown_requested = True
-    manager.stop_all()
+    manager.stop("ALL")
 
 
 @atexit.register
