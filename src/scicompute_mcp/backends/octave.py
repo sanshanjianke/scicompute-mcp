@@ -37,7 +37,7 @@ class OctaveBackend(ComputeBackend):
                 return True
 
             try:
-                # 延迟导入，只在需要时才触发
+                # Lazy import, only triggered when needed
                 import oct2py
                 _octave_session = oct2py.octave
                 _octave_session.eval("graphics_toolkit('gnuplot')")
@@ -48,7 +48,7 @@ class OctaveBackend(ComputeBackend):
                 return False
 
     def evaluate(self, code: str, timeout: float = 30.0) -> Result:
-        # start() 应该由 manager 调用
+        # start() should be called by manager
         if _octave_session is None:
             return Result(success=False, content=[ErrorContent(message="Octave not started")])
 
@@ -170,19 +170,19 @@ end_try_catch
                 return
 
             try:
-                # 获取进程 PID 用于强制终止
+                # Get process PID for force termination
                 try:
                     pid = _octave_session._engine.repl.child.pid
                 except Exception:
                     pid = None
 
-                # 尝试优雅关闭
+                # Try graceful shutdown
                 try:
                     _octave_session.eval("exit")
                 except Exception:
                     pass
 
-                # 强制终止进程
+                # Force terminate process
                 if pid:
                     try:
                         import os

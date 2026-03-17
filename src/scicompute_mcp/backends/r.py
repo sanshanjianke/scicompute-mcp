@@ -52,7 +52,7 @@ class RBackend(ComputeBackend):
                     text=True
                 )
 
-                # 设置非阻塞读取
+                # Set non-blocking read
                 import fcntl
                 fd = _process.stdout.fileno()
                 fl = fcntl.fcntl(fd, fcntl.F_GETFL)
@@ -135,13 +135,13 @@ class RBackend(ComputeBackend):
         is_library = code.startswith('library') or code.startswith('source')
 
         if is_assignment or is_library:
-            # 赋值语句或库加载，不需要 print
+            # Assignment or library loading, no print needed
             wrapped_code = code + '\n'
         elif is_function_call:
-            # 函数调用，可能返回值，用 print 包裹
+            # Function call, may have return value, wrap with print
             wrapped_code = f'print({code})\n'
         else:
-            # 表达式，用 print 包裹
+            # Expression, wrap with print
             wrapped_code = f'print({code})\n'
 
         _process.stdin.write(wrapped_code)
@@ -165,7 +165,7 @@ class RBackend(ComputeBackend):
         _process.stdin.write(wrapped_code)
         _process.stdin.flush()
 
-        # 等待图片生成
+        # Wait for plot generation
         start_time = time.time()
         max_wait = min(timeout - 1.0, 10.0)
         while time.time() - start_time < max_wait:
@@ -184,18 +184,18 @@ class RBackend(ComputeBackend):
         lines = output.strip().split('\n')
         cleaned = []
         for line in lines:
-            # 移除 R 提示符
+            # Remove R prompts
             line = re.sub(r'^>\s*', '', line)
             line = re.sub(r'^\+\s*', '', line)
-            # 移除行号 [1] [2] 等
+            # Remove line numbers [1] [2] etc
             line = re.sub(r'^\[\d+\]\s*', '', line)
-            # 跳过 print(...) 输入行
+            # Skip print(...) input lines
             if re.match(r'^print\(', line):
                 continue
-            # 跳过赋值语句的输入回显
+            # Skip input echo for assignment statements
             if re.match(r'^[a-zA-Z_][a-zA-Z0-9_\.]*\s*<-', line):
                 continue
-            # 跳过空行和纯提示符行
+            # Skip empty lines and pure prompt lines
             if line.strip() and line.strip() not in ['>', '+']:
                 cleaned.append(line)
         return '\n'.join(cleaned)

@@ -13,13 +13,13 @@ _lock = threading.Lock()
 
 
 def _find_mathematica_kernel() -> str:
-    """查找 WolframKernel 路径"""
-    # 优先环境变量
+    """Find WolframKernel path"""
+    # Environment variable takes priority
     env_path = os.environ.get("MATHEMATICA_KERNEL_PATH")
     if env_path and os.path.exists(env_path):
         return env_path
 
-    # 自动查找常见路径
+    # Auto-find common paths
     patterns = [
         "/usr/local/Wolfram/Wolfram/*/Executables/WolframKernel",
         "/Applications/Mathematica.app/Contents/MacOS/WolframKernel",

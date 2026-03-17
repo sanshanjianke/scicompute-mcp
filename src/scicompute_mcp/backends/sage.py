@@ -22,18 +22,18 @@ _lock = threading.Lock()
 
 
 def _find_sage_path() -> str:
-    """自动检测 SageMath 安装路径"""
-    # 1. 环境变量
+    """Auto-detect SageMath installation path"""
+    # 1. Environment variable
     env_path = os.environ.get("SAGE_PATH")
     if env_path and os.path.exists(env_path):
         return env_path
 
-    # 2. PATH 中查找
+    # 2. Search in PATH
     which_path = shutil.which("sage")
     if which_path:
         return which_path
 
-    # 3. 常见 conda 环境路径
+    # 3. Common conda environment paths
     home = os.path.expanduser("~")
     conda_patterns = [
         f"{home}/miniconda3/envs/sage/bin/sage",
@@ -45,13 +45,13 @@ def _find_sage_path() -> str:
         if os.path.exists(path):
             return path
 
-    # 4. 系统安装路径
+    # 4. System installation paths
     system_paths = ["/usr/bin/sage", "/usr/local/bin/sage", "/opt/sage/sage"]
     for path in system_paths:
         if os.path.exists(path):
             return path
 
-    # 5. 默认返回（可能不存在）
+    # 5. Default return (may not exist)
     return "/usr/bin/sage"
 
 
@@ -95,7 +95,7 @@ class SageBackend(ComputeBackend):
                 fl_err = fcntl.fcntl(fd_err, fcntl.F_GETFL)
                 fcntl.fcntl(fd_err, fcntl.F_SETFL, fl_err | os.O_NONBLOCK)
 
-                time.sleep(1.0)  # 等待欢迎界面完全输出
+                time.sleep(1.0)  # Wait for welcome banner to fully output
                 self._read_available(0.5)
 
                 # Send empty statement to clear welcome banner
@@ -116,7 +116,7 @@ class SageBackend(ComputeBackend):
             ready, _, _ = select.select([_process.stdout, _process.stderr], [], [], 0.1)
             for stream in ready:
                 try:
-                    chunk = stream.read(4096)  # 限制读取大小避免阻塞
+                    chunk = stream.read(4096)  # Limit read size to avoid blocking
                     if chunk:
                         output += chunk
                 except Exception:
@@ -216,10 +216,10 @@ plt.close()
         lines = output.strip().split('\n')
         cleaned = []
         for line in lines:
-            # 移除提示符（行首或行中）
+            # Remove prompts (at line start or middle)
             line = re.sub(r'sage:\s*', '', line)
             line = re.sub(r'^\.+\s*', '', line)
-            # 跳过 print 输入行
+            # Skip print input lines
             if re.match(r'^print\(', line):
                 continue
             if line.strip():

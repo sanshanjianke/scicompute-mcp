@@ -12,7 +12,7 @@ from typing import Optional
 
 from .base import ComputeBackend, Result, TextContent, ImageContent, ErrorContent
 
-# 全局单例
+# Global singleton
 _process: Optional[subprocess.Popen] = None
 _input_num: int = 0
 _lock = threading.Lock()
