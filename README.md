@@ -4,7 +4,7 @@ MCP server for scientific computing with multiple backends. Provides AI coding a
 
 ## Features
 
-- Multiple computing backends (Mathematica, Octave, Python Scientific, R, SageMath)
+- Multiple computing backends (Mathematica, Octave, Python Scientific, R, SageMath, MATLAB)
 - Image output support (plots, graphics)
 - Automatic backend selection
 - Persistent session state (variables persist across calls)
@@ -20,8 +20,8 @@ MCP server for scientific computing with multiple backends. Provides AI coding a
 | Python Scientific | ✅ Ready | symbolic, numeric, plot |
 | R | ✅ Ready | numeric, plot |
 | Octave | ✅ Ready | numeric, plot |
+| MATLAB | ✅ Ready | numeric, plot |
 | Maxima | 🔒 Reserved | symbolic, numeric, plot |
-| MATLAB | 🔲 Planned | numeric, plot |
 | Julia | 🔲 Planned | numeric, plot |
 
 > **Note**: Maxima backend is available but disabled by default. To enable, uncomment the registration line in `manager.py`.
@@ -143,6 +143,22 @@ brew install octave gnuplot
 export MATHEMATICA_KERNEL_PATH="/usr/local/Wolfram/Wolfram/14.3/Executables/WolframKernel"
 ```
 
+#### MATLAB Backend
+
+MATLAB requires the official MATLAB Engine for Python:
+
+```bash
+# Install MATLAB Engine for Python (from MATLAB installation)
+cd "$MATLAB_ROOT/extern/engines/python"
+pip install .
+```
+
+Configure path (optional):
+
+```bash
+export MATLAB_PATH="/usr/local/MATLAB/R2024a/bin/matlab"
+```
+
 ## Configuration
 
 ### Environment Variables
@@ -151,6 +167,7 @@ export MATHEMATICA_KERNEL_PATH="/usr/local/Wolfram/Wolfram/14.3/Executables/Wolf
 |----------|-------------|---------|
 | `SAGE_PATH` | SageMath path | `$HOME/miniconda3/envs/sage/bin/sage` |
 | `MATHEMATICA_KERNEL_PATH` | WolframKernel path | `/usr/local/Wolfram/Wolfram/14.3/Executables/WolframKernel` |
+| `MATLAB_PATH` | MATLAB executable path | `/usr/local/MATLAB/R2024a/bin/matlab` |
 | `SCICOMPUTE_PRIORITY` | Backend priority | `mathematica,sage,py_scientific` |
 
 ### Claude Code (`.mcp.json`)
@@ -253,6 +270,10 @@ compute("hist(rnorm(1000))", "r")
 
 # Python Scientific
 compute("sp.integrate(sp.sin(sp.Symbol('x')), sp.Symbol('x'))", "py_scientific")
+
+# MATLAB
+compute("plot(1:10, rand(1,10))", "matlab")
+compute("[V,D] = eig(magic(3))", "matlab")
 ```
 
 ### list_backends()
@@ -308,6 +329,7 @@ Look up NDSolve usage
 - For R backend: R installation
 - For Octave backend: GNU Octave + gnuplot
 - For Mathematica backend: Wolfram Mathematica
+- For MATLAB backend: MATLAB + MATLAB Engine for Python
 
 ## License
 

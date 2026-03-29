@@ -8,6 +8,7 @@ from .backends.maxima import MaximaBackend
 from .backends.py_scientific import PyScientificBackend
 from .backends.r import RBackend
 from .backends.sage import SageBackend
+from .backends.matlab import MatlabBackend
 
 
 class BackendManager:
@@ -26,13 +27,14 @@ class BackendManager:
         self._backend_classes["py_scientific"] = PyScientificBackend
         self._backend_classes["r"] = RBackend
         self._backend_classes["sage"] = SageBackend
+        self._backend_classes["matlab"] = MatlabBackend
 
     def _load_priority(self):
         env_priority = os.environ.get("SCICOMPUTE_PRIORITY", "")
         if env_priority:
             self._priority = [p.strip() for p in env_priority.split(",")]
         else:
-            self._priority = ["mathematica", "sage", "py_scientific", "r", "octave"]
+            self._priority = ["mathematica", "sage", "py_scientific", "r", "octave", "matlab"]
 
     def list_available(self) -> list[dict]:
         result = []
@@ -186,6 +188,8 @@ class BackendManager:
             doc_code = f'?{symbol}'
         elif selected.name == "sage":
             doc_code = f'{symbol}?'
+        elif selected.name == "matlab":
+            doc_code = f'help {symbol}'
         else:
             return Result(
                 success=False,

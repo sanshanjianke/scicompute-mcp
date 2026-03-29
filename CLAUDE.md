@@ -11,6 +11,7 @@ MCP server providing scientific computing capabilities for AI coding assistants.
 | py_scientific | Python scientific computing (NumPy, SciPy, SymPy, Matplotlib) |
 | r | Statistical computing, data visualization |
 | octave | Numerical computing, plotting |
+| matlab | Numerical computing, visualization, matrix operations |
 
 ## Usage
 
@@ -24,3 +25,4 @@ Call via MCP tools:
 Backend paths are configured in `src/scicompute_mcp/backends/*.py`, can be overridden via environment variables:
 - `SAGE_PATH` - SageMath path
 - `MATHEMATICA_KERNEL_PATH` - Mathematica kernel path
+- `MATLAB_PATH` - MATLAB executable path
