@@ -55,23 +55,23 @@ pip install scicompute-mcp[all]
 ### Environment Architecture
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                    MCP Server (Python 3.10+)                │
-│  ┌─────────────┐ ┌─────────────┐ ┌────────────────────────┐ │
-│  │ Mathematica │ │   Octave    │ │     py_scientific      │ │
-│  │   Backend   │ │   Backend   │ │  (same Python env)     │ │
-│  └──────┬──────┘ └──────┬──────┘ └────────────────────────┘ │
-│         │               │                                    │
-│         ▼               ▼                                    │
-│  ┌─────────────┐ ┌─────────────┐ ┌─────────────┐            │
-│  │  Wolfram    │ │   octave    │ │      R      │   sage     │
-│  │  Kernel     │ │   process   │ │   process   │  process   │
-│  └─────────────┘ └─────────────┘ └─────────────┘            │
-│         │               │               │          │         │
-│         ▼               ▼               ▼          ▼         │
-│   Independent     Independent      Independent   conda env  │
-│   (official)      (apt/brew)       (apt/brew)  (Python 3.11)│
-└─────────────────────────────────────────────────────────────┘
+┌───────────────────────────────────────────────────────────────────────────┐
+│                    MCP Server (Python 3.10+)                              │
+│  ┌─────────────┐ ┌─────────────┐ ┌─────────────┐ ┌────────────────────┐  │
+│  │ Mathematica │ │   Octave    │ │   MATLAB    │ │   py_scientific    │  │
+│  │   Backend   │ │   Backend   │ │   Backend   │ │  (same Python env) │  │
+│  └──────┬──────┘ └──────┬──────┘ └──────┬──────┘ └────────────────────┘  │
+│         │               │               │                                  │
+│         ▼               ▼               ▼                                  │
+│  ┌─────────────┐ ┌─────────────┐ ┌─────────────┐ ┌─────────────┐         │
+│  │  Wolfram    │ │   octave    │ │   MATLAB    │ │      R      │  sage   │
+│  │  Kernel     │ │   process   │ │   process   │ │   process   │ process │
+│  └─────────────┘ └─────────────┘ └─────────────┘ └─────────────┘         │
+│         │               │               │               │         │       │
+│         ▼               ▼               ▼               ▼         ▼       │
+│   Independent     Independent      Independent     Independent  conda     │
+│   (official)      (apt/brew)       (official)      (apt/brew)  env       │
+└───────────────────────────────────────────────────────────────────────────┘
 ```
 
 **Key Points**:
@@ -145,7 +145,7 @@ export MATHEMATICA_KERNEL_PATH="/usr/local/Wolfram/Wolfram/14.3/Executables/Wolf
 
 #### MATLAB Backend
 
-MATLAB requires the official MATLAB Engine for Python:
+MATLAB requires the official MATLAB Engine for Python (supports Python 3.9, 3.10, or 3.11 only):
 
 ```bash
 # Install MATLAB Engine for Python (from MATLAB installation)
@@ -158,6 +158,8 @@ Configure path (optional):
 ```bash
 export MATLAB_PATH="/usr/local/MATLAB/R2024a/bin/matlab"
 ```
+
+> **Note**: MATLAB Engine requires Python 3.9, 3.10, or 3.11. It does not support Python 3.12+.
 
 ## Configuration
 
