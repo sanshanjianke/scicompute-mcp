@@ -2,6 +2,7 @@ import base64
 import glob
 import os
 import shutil
+import sys
 import tempfile
 import threading
 from typing import Optional
@@ -40,6 +41,12 @@ def _find_matlab_path() -> Optional[str]:
     return None
 
 
+def _check_python_version() -> bool:
+    """MATLAB Engine requires Python 3.9, 3.10, or 3.11"""
+    version = sys.version_info
+    return version.major == 3 and version.minor in (9, 10, 11)
+
+
 class MatlabBackend(ComputeBackend):
     name = "matlab"
     description = "MATLAB - Numerical computing, visualization, and programming"
@@ -54,6 +61,9 @@ class MatlabBackend(ComputeBackend):
     @classmethod
     def is_available(cls) -> bool:
         """Check if MATLAB is available."""
+        # Check Python version first
+        if not _check_python_version():
+            return False
         try:
             import matlab.engine
             return True
@@ -65,6 +75,13 @@ class MatlabBackend(ComputeBackend):
         with _lock:
             if _session is not None:
                 return True
+
+            # Check Python version
+            if not _check_python_version():
+                version = ".".join(map(str, sys.version_info[:2]))
+                print(f"MATLAB Engine requires Python 3.9, 3.10, or 3.11, but current version is {version}",
+                      file=__import__("sys").stderr)
+                return False
 
             try:
                 import matlab.engine
@@ -89,35 +106,53 @@ class MatlabBackend(ComputeBackend):
             temp_path = temp_file.name
             temp_file.close()
 
-            # Wrap code to handle graphics
-            wrapped_code = f"""
+            # Wrap code to handle graphics - use a script approach
+            wrapper_script = f"""
 set(0, 'DefaultFigureVisible', 'off');
 close all;
 
+plot_generated = false;
+result_str = '';
+
 try
     {code}
+    % Check if any figures were created
     figs = get(0, 'Children');
     if ~isempty(figs)
         fig = figs(1);
         print(fig, '{temp_path}', '-dpng', '-r150');
         close all;
-        disp('__PLOT_GENERATED__');
+        plot_generated = true;
     end
 catch ME
-    disp(['Error: ' ME.message]);
+    result_str = ME.message;
 end
-"""
-            # Execute code
-            _session.eval(wrapped_code, nargout=0)
 
-            # Check if plot was generated
-            if os.path.exists(temp_path) and os.path.getsize(temp_path) > 0:
+% Return result structure
+result = struct('plot_generated', plot_generated, 'message', result_str);
+"""
+            # Execute code - result is a struct with fields
+            try:
+                result_struct = _session.eval(wrapper_script, nargout=1)
+                plot_generated = result_struct['plot_generated']
+                message = result_struct.get('message', '')
+            except:
+                # Fallback if struct doesn't work as expected
+                _session.eval(wrapper_script, nargout=0)
+                plot_generated = True  # Assume plot was generated
+                message = ''
+
+            # Check if plot was generated and file exists
+            if os.path.exists(temp_path) and os.path.getsize(temp_path) > 100:
                 with open(temp_path, "rb") as f:
                     image_data = base64.b64encode(f.read()).decode("utf-8")
                 os.unlink(temp_path)
                 return Result(success=True, content=[ImageContent(data=image_data, mimeType="image/png")])
 
-            # No plot, return text output
+            # No plot
+            if message:
+                return Result(success=False, content=[ErrorContent(message=message)])
+
             return Result(success=True, content=[TextContent(text="(no output)")])
 
         except Exception as e:
