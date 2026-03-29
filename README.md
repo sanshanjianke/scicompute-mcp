@@ -4,12 +4,13 @@ MCP server for scientific computing with multiple backends. Provides AI coding a
 
 ## Features
 
-- Multiple computing backends (Mathematica, Octave, Python Scientific, R, SageMath, MATLAB)
+- Multiple computing backends (Mathematica, Octave, Python Scientific, R, SageMath)
 - Image output support (plots, graphics)
 - Automatic backend selection
 - Persistent session state (variables persist across calls)
 - Documentation query for unknown symbols
 - Multi-platform support (Claude Code, Claude Desktop, OpenCode/Crush)
+- **Recommended**: Use alongside [official MATLAB MCP Server](https://github.com/matlab/matlab-mcp-core-server) for MATLAB support
 
 ## Supported Backends
 
@@ -20,11 +21,47 @@ MCP server for scientific computing with multiple backends. Provides AI coding a
 | Python Scientific | ✅ Ready | symbolic, numeric, plot |
 | R | ✅ Ready | numeric, plot |
 | Octave | ✅ Ready | numeric, plot |
-| MATLAB | ✅ Ready | numeric, plot |
 | Maxima | 🔒 Reserved | symbolic, numeric, plot |
 | Julia | 🔲 Planned | numeric, plot |
 
 > **Note**: Maxima backend is available but disabled by default. To enable, uncomment the registration line in `manager.py`.
+
+### MATLAB Support
+
+For **MATLAB** support, we recommend using the official [MATLAB MCP Core Server](https://github.com/matlab/matlab-mcp-core-server) from MathWorks alongside SciCompute:
+
+**Why use the official server?**
+- No Python version restrictions (works with any Python version)
+- No library installation or patching required
+- Standalone Go binary with no dependencies
+- Additional features: code analysis, test running, toolbox detection
+
+**Installation:**
+
+1. Download the MATLAB MCP Core Server binary from the [latest release](https://github.com/matlab/matlab-mcp-core-server/releases/latest):
+   ```bash
+   # Linux x86_64
+   curl -L -o ~/matlab-mcp-core-server https://github.com/matlab/matlab-mcp-core-server/releases/latest/download/matlab-mcp-core-server-glnxa64
+   chmod +x ~/matlab-mcp-core-server
+   ```
+
+2. Configure both servers in your MCP config:
+   ```json
+   {
+     "mcpServers": {
+       "scicompute": {
+         "command": "uvx",
+         "args": ["scicompute-mcp"]
+       },
+       "matlab": {
+         "command": "/home/username/matlab-mcp-core-server",
+         "args": ["--matlab-root=/usr/local/MATLAB/R2024a"]
+       }
+     }
+   }
+   ```
+
+See the [MATLAB MCP Core Server documentation](https://github.com/matlab/matlab-mcp-core-server) for more details.
 
 ## Installation
 
@@ -143,24 +180,6 @@ brew install octave gnuplot
 export MATHEMATICA_KERNEL_PATH="/usr/local/Wolfram/Wolfram/14.3/Executables/WolframKernel"
 ```
 
-#### MATLAB Backend
-
-MATLAB requires the official MATLAB Engine for Python (supports Python 3.9, 3.10, or 3.11 only):
-
-```bash
-# Install MATLAB Engine for Python (from MATLAB installation)
-cd "$MATLAB_ROOT/extern/engines/python"
-pip install .
-```
-
-Configure path (optional):
-
-```bash
-export MATLAB_PATH="/usr/local/MATLAB/R2024a/bin/matlab"
-```
-
-> **Note**: MATLAB Engine requires Python 3.9, 3.10, or 3.11. It does not support Python 3.12+.
-
 ## Configuration
 
 ### Environment Variables
@@ -169,7 +188,6 @@ export MATLAB_PATH="/usr/local/MATLAB/R2024a/bin/matlab"
 |----------|-------------|---------|
 | `SAGE_PATH` | SageMath path | `$HOME/miniconda3/envs/sage/bin/sage` |
 | `MATHEMATICA_KERNEL_PATH` | WolframKernel path | `/usr/local/Wolfram/Wolfram/14.3/Executables/WolframKernel` |
-| `MATLAB_PATH` | MATLAB executable path | `/usr/local/MATLAB/R2024a/bin/matlab` |
 | `SCICOMPUTE_PRIORITY` | Backend priority | `mathematica,sage,py_scientific` |
 
 ### Claude Code (`.mcp.json`)
