@@ -73,15 +73,24 @@ class MathematicaBackend(ComputeBackend):
             temp_file.close()
 
             wrapped_code = f'''
-            With[{{result = ({code})}},
-                Module[{{graphic = result, isImage = False}},
-                    graphic = If[Head[result] === Legended, First[List @@ result], result];
-                    isImage = MatchQ[Head[graphic], Graphics | Graphics3D | Image];
-                    If[isImage,
-                        Export["{temp_path}", graphic, "PNG"];
-                        <|"type" -> "image", "path" -> "{temp_path}"|>,
-                        <|"type" -> "text", "data" -> ToString[result]|>
-                    ]
+            Module[{{evalData, graphic, isImage}},
+                evalData = EvaluationData[{code}];
+                
+                (* Handle graphics *)
+                graphic = evalData["Result"];
+                If[Head[graphic] === Legended,
+                    graphic = First[List @@ graphic];
+                ];
+                isImage = MatchQ[Head[graphic], Graphics | Graphics3D | Image | GraphicsComplex];
+                
+                If[isImage,
+                    Export["{temp_path}", graphic, "PNG"];
+                    {{{{"type", "image"}}}},
+                    {{{{"type", "text"}}, 
+                      {{"outputLog", evalData["OutputLog"]}},
+                      {{"messages", evalData["MessagesText"]}},
+                      {{"data", ToString[OutputForm[evalData["Result"]]]}}
+                    }}
                 ]
             ]
             '''
@@ -95,11 +104,19 @@ class MathematicaBackend(ComputeBackend):
             return Result(success=True, content=[TextContent(text="Null")])
 
         try:
-            if hasattr(result, 'get'):
-                result_type = result.get('type', 'text')
+            # V3: Parse nested tuple/list format: {{"key", value}, ...} or (("key", value), ...)
+            result_dict = {}
+            
+            if isinstance(result, (list, tuple)):
+                for item in result:
+                    if isinstance(item, (list, tuple)) and len(item) >= 2:
+                        result_dict[item[0]] = item[1]
+            
+            if result_dict:
+                result_type = result_dict.get('type', 'text')
 
                 if result_type == 'image':
-                    if os.path.exists(temp_path):
+                    if temp_path and os.path.exists(temp_path):
                         with open(temp_path, "rb") as f:
                             image_data = base64.b64encode(f.read()).decode("utf-8")
                         os.unlink(temp_path)
@@ -107,8 +124,49 @@ class MathematicaBackend(ComputeBackend):
                     else:
                         return Result(success=False, content=[ErrorContent(message="Image file not created")])
                 else:
-                    data = result.get('data', '')
-                    return Result(success=True, content=[TextContent(text=str(data))])
+                    output_log = result_dict.get('outputLog', [])
+                    messages = result_dict.get('messages', [])
+                    data = result_dict.get('data', '')
+                    
+                    parts = []
+                    
+                    # Handle outputLog - may be tuple, list or empty
+                    if output_log:
+                        if isinstance(output_log, (list, tuple)):
+                            log_text = '\n'.join(str(x) for x in output_log if x)
+                            if log_text.strip():
+                                parts.append(log_text)
+                        elif str(output_log).strip():
+                            parts.append(str(output_log))
+                    
+                    # Handle messages
+                    if messages:
+                        if isinstance(messages, (list, tuple)):
+                            msg_text = '\n'.join(str(x) for x in messages if x)
+                            if msg_text.strip():
+                                parts.append(msg_text)
+                        elif str(messages).strip():
+                            parts.append(str(messages))
+                    
+                    # Handle data
+                    if data and str(data).strip() and str(data) != 'Null':
+                        parts.append(str(data))
+                    
+                    combined = '\n'.join(parts)
+                    if combined.strip() == '':
+                        combined = '(no output)'
+                    return Result(success=True, content=[TextContent(text=combined.strip())])
+                    
+            elif hasattr(result, 'get'):
+                # Fallback for dict-like objects
+                result_type = result.get('type', 'text')
+                if result_type == 'image':
+                    if temp_path and os.path.exists(temp_path):
+                        with open(temp_path, "rb") as f:
+                            image_data = base64.b64encode(f.read()).decode("utf-8")
+                        os.unlink(temp_path)
+                        return Result(success=True, content=[ImageContent(data=image_data, mimeType="image/png")])
+                
         except Exception as e:
             if temp_path and os.path.exists(temp_path):
                 os.unlink(temp_path)
@@ -120,7 +178,13 @@ class MathematicaBackend(ComputeBackend):
         global _session
         if _session:
             try:
-                _session.evaluate("ClearAll[\"Global`*\"]")
+                _session.evaluate('''
+                    ClearAll["Global`*"];
+                    Remove["Global`*"];
+                    $ContextPath = DeleteCases[$ContextPath, "Global`"];
+                    $Context = "Global`";
+                    $ContextPath = Prepend[$ContextPath, "Global`"];
+                ''')
             except:
                 pass
 

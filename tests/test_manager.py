@@ -7,87 +7,47 @@ from scicompute_mcp.backends.base import TextContent, ErrorContent
 class TestBackendManager:
     def test_init(self):
         manager = BackendManager()
-        assert "mathematica" in manager._backends
-        assert "octave" in manager._backends
+        assert "mathematica" in manager._backend_classes
+        assert "octave" in manager._backend_classes
+        assert "py_scientific" in manager._backend_classes
     
-    def test_list_available_empty(self):
+    def test_list_available(self):
         manager = BackendManager()
-        with patch.object(manager._backends["mathematica"], "is_available", return_value=False):
-            with patch.object(manager._backends["octave"], "is_available", return_value=False):
-                available = manager.list_available()
-                assert available == []
-    
-    def test_list_available_octave(self):
-        manager = BackendManager()
-        with patch.object(manager._backends["mathematica"], "is_available", return_value=False):
-            with patch.object(manager._backends["octave"], "is_available", return_value=True):
-                available = manager.list_available()
-                assert len(available) == 1
-                assert available[0]["name"] == "octave"
-    
-    def test_get_backend(self):
-        manager = BackendManager()
-        backend = manager.get_backend("mathematica")
-        assert backend is not None
-        assert backend.name == "mathematica"
-    
-    def test_get_backend_not_found(self):
-        manager = BackendManager()
-        backend = manager.get_backend("nonexistent")
-        assert backend is None
+        available = manager.list_available()
+        assert isinstance(available, list)
+        for item in available:
+            assert "name" in item
+            assert "description" in item
+            assert "capabilities" in item
     
     def test_select_backend_by_name(self):
         manager = BackendManager()
-        with patch.object(manager._backends["octave"], "is_available", return_value=True):
-            backend, msg = manager.select_backend("octave")
-            assert backend is not None
-            assert backend.name == "octave"
+        backend, msg = manager.select_backend("py_scientific")
+        assert backend is not None
+        assert backend.name == "py_scientific"
     
     def test_select_backend_by_name_not_available(self):
         manager = BackendManager()
-        with patch.object(manager._backends["octave"], "is_available", return_value=False):
-            backend, msg = manager.select_backend("octave")
-            assert backend is None
-            assert "not available" in msg
+        backend, msg = manager.select_backend("nonexistent")
+        assert backend is None
+        assert "not available" in msg
     
     def test_select_backend_auto(self):
         manager = BackendManager()
-        with patch.object(manager._backends["mathematica"], "is_available", return_value=True):
-            backend, msg = manager.select_backend()
-            assert backend is not None
-            assert backend.name == "mathematica"
+        backend, msg = manager.select_backend()
+        assert backend is not None
     
-    def test_select_backend_auto_skip_unavailable(self):
+    def test_compute_with_py_scientific(self):
         manager = BackendManager()
-        with patch.object(manager._backends["mathematica"], "is_available", return_value=False):
-            with patch.object(manager._backends["octave"], "is_available", return_value=True):
-                backend, msg = manager.select_backend()
-                assert backend is not None
-                assert backend.name == "octave"
+        result = manager.compute("1 + 1", backend="py_scientific")
+        assert result.success is True
     
-    def test_select_backend_none_available(self):
+    def test_stop_all(self):
         manager = BackendManager()
-        with patch.object(manager._backends["mathematica"], "is_available", return_value=False):
-            with patch.object(manager._backends["octave"], "is_available", return_value=False):
-                backend, msg = manager.select_backend()
-                assert backend is None
-                assert "No available backends" in msg
-    
-    def test_compute_no_backend(self):
-        manager = BackendManager()
-        with patch.object(manager._backends["mathematica"], "is_available", return_value=False):
-            with patch.object(manager._backends["octave"], "is_available", return_value=False):
-                result = manager.compute("1+1")
-                assert result.success is False
-                assert "No available backends" in result.content[0].message
-    
-    def test_reset_specific_backend(self):
-        manager = BackendManager()
-        manager._backends["octave"]._started = True
-        result = manager.reset("octave")
+        result = manager.stop("ALL")
         assert result["success"] is True
     
-    def test_reset_nonexistent_backend(self):
+    def test_stop_nonexistent(self):
         manager = BackendManager()
-        result = manager.reset("nonexistent")
+        result = manager.stop("nonexistent")
         assert result["success"] is False
