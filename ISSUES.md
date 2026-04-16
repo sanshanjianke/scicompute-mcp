@@ -229,3 +229,59 @@ pip install git+https://github.com/blink1073/oct2py.git@main
 ### Related
 
 - [blink1073/oct2py](https://github.com/blink1073/oct2py) - GitHub repository
+
+---
+
+## stdout Not Captured for py_scientific, octave, julia Backends
+
+**Status**: Open
+**Priority**: Medium
+**Reported**: 2026-04-17
+
+### Problem
+
+The following backends do not capture stdout output (print/disp/println), only expression return values:
+- py_scientific
+- octave
+- julia
+
+These backends work correctly (both print and return values):
+- mathematica (Print works)
+- r (print works)
+- maxima (print works)
+- sage (print works)
+
+### Test Results
+
+| Backend | print/disp/println | Expression Return |
+|---------|-------------------|-------------------|
+| py_scientific | ❌ No output | ✅ Normal |
+| octave | ❌ No output | ✅ Normal |
+| julia | ❌ No output | ✅ Normal |
+| mathematica | ✅ Print works | ✅ Normal |
+| r | ✅ print works | ✅ Normal |
+| maxima | ✅ print works | ✅ Normal |
+| sage | ✅ print works | ✅ Normal |
+
+### Impact
+
+Users cannot use print statements for debugging or output in py_scientific, octave, and julia backends.
+
+### Workaround
+
+For these backends, use expression return values instead of print:
+- py_scientific: Just type the expression without print
+- octave: Type the expression without semicolon
+- julia: Type the expression (it will return the value)
+
+### To Investigate
+
+- Check how stdout is captured in each backend
+- Compare implementation with working backends (mathematica, r, maxima, sage)
+- May need to redirect/capture subprocess stdout properly
+
+### Related Files
+
+- src/scicompute_mcp/backends/py_scientific.py
+- src/scicompute_mcp/backends/octave.py
+- src/scicompute_mcp/backends/julia.py
