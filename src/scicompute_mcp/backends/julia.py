@@ -20,6 +20,7 @@ _server_process = None
 _server_port = 8765
 _server_lock = threading.Lock()
 _server_ready = threading.Event()  # 用于标记服务器是否就绪
+_prestarting = False  # 是否正在预启动
 
 JULIA_SERVER_CODE = '''
 using HTTP
@@ -82,6 +83,56 @@ def _find_julia() -> str:
 JULIA_PATH = _find_julia()
 
 
+def _prestart_server():
+    """在后台线程中预启动 Julia 服务器"""
+    global _server_process, _prestarting
+    with _server_lock:
+        if _server_process is not None and _server_process.poll() is None:
+            return
+        if _prestarting:
+            return
+        _prestarting = True
+
+    try:
+        server_code = JULIA_SERVER_CODE.format(port=_server_port)
+        _server_process = subprocess.Popen(
+            [JULIA_PATH, "-e", server_code],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL
+        )
+        # 等待服务器就绪
+        start_time = time.time()
+        while time.time() - start_time < 10:
+            try:
+                req = urllib.request.Request(
+                    f"http://127.0.0.1:{_server_port}",
+                    data=json.dumps({"eval": "1"}).encode(),
+                    headers={"Content-Type": "application/json"},
+                    method="POST"
+                )
+                urllib.request.urlopen(req, timeout=1)
+                _server_ready.set()
+                break
+            except:
+                time.sleep(0.05)
+    except Exception as e:
+        print(f"Julia prestart failed: {e}", file=__import__("sys").stderr)
+    finally:
+        _prestarting = False
+
+
+# 在模块加载时启动后台线程预启动 Julia 服务器
+def _init_julia():
+    """初始化 Julia 后台服务"""
+    if JuliaBackend.is_available():
+        t = threading.Thread(target=_prestart_server, daemon=True, name="julia-prestart")
+        t.start()
+
+
+# 延迟初始化（不阻塞模块导入）
+_init_julia()
+
+
 class JuliaBackend(ComputeBackend):
     name = "julia"
     description = "Julia - High-performance numerical computing"
@@ -102,6 +153,7 @@ class JuliaBackend(ComputeBackend):
     def _wait_for_server(self, timeout: float = 10.0) -> bool:
         """等待服务器启动（非阻塞方式）"""
         start_time = time.time()
+        poll_interval = 0.05  # 50ms 轮询间隔
         while time.time() - start_time < timeout:
             try:
                 req = urllib.request.Request(
@@ -113,7 +165,7 @@ class JuliaBackend(ComputeBackend):
                 urllib.request.urlopen(req, timeout=1)
                 return True
             except:
-                time.sleep(0.1)
+                time.sleep(poll_interval)
         return False
 
     def start(self) -> bool:

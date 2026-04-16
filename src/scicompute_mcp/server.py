@@ -1,5 +1,6 @@
 import asyncio
 import atexit
+import concurrent.futures
 import json
 import signal
 import sys
@@ -12,6 +13,9 @@ from mcp.server.stdio import stdio_server
 from mcp.types import Tool, TextContent as MCPTextContent, ImageContent as MCPImageContent
 
 from .manager import BackendManager
+
+# 创建线程池用于执行阻塞操作
+_executor = concurrent.futures.ThreadPoolExecutor(max_workers=4, thread_name_prefix="scicompute_")
 
 LOG_FILE = "/tmp/scicompute_mcp.log"
 
@@ -194,33 +198,35 @@ def _safe_process_content(item) -> list:
 async def call_tool(name: str, arguments: dict) -> list:
     _log(f"=== call_tool() START ===")
     _log(f"  Tool name: {name}")
-    
+
     try:
         if name == "compute":
             code = arguments.get("code", "")
             backend = arguments.get("backend")
-            
+
             _log(f"  COMPUTE: backend={backend}, code_len={len(code)}")
-            
+
             try:
-                result = manager.compute(code, backend)
+                # 在线程池中执行阻塞操作，避免阻塞事件循环
+                loop = asyncio.get_event_loop()
+                result = await loop.run_in_executor(_executor, manager.compute, code, backend)
                 _log(f"  compute returned: success={result.success}, content_count={len(result.content)}")
             except Exception as e:
                 _log(f"  manager.compute EXCEPTION: {e}")
                 _log_stack()
                 return [MCPTextContent(type="text", text=f"Backend error: {e}")]
-            
+
             content = []
             for i, item in enumerate(result.content):
                 _log(f"  Processing content[{i}]...")
                 content.extend(_safe_process_content(item))
-            
+
             _log(f"=== call_tool() END - {len(content)} items ===")
             # Log the actual response being returned
             for i, c in enumerate(content):
                 _log(f"  Response[{i}]: type={c.type}, text={getattr(c, 'text', 'N/A')[:50]}")
             return content
-        
+
         elif name == "list_backends":
             _log(f"  LIST_BACKENDS")
             try:
@@ -230,7 +236,7 @@ async def call_tool(name: str, arguments: dict) -> list:
             except Exception as e:
                 _log(f"  list_backends error: {e}")
                 return [MCPTextContent(type="text", text=f"Error: {e}")]
-        
+
         elif name == "stop":
             _log(f"  STOP")
             backend = arguments.get("backend")
@@ -245,9 +251,11 @@ async def call_tool(name: str, arguments: dict) -> list:
             _log(f"  DOC")
             symbol = arguments.get("symbol", "")
             backend = arguments.get("backend", "mathematica")
-            
+
             try:
-                result = manager.doc(symbol, backend)
+                # 在线程池中执行阻塞操作
+                loop = asyncio.get_event_loop()
+                result = await loop.run_in_executor(_executor, manager.doc, symbol, backend)
                 content = []
                 for item in result.content:
                     content.extend(_safe_process_content(item))
