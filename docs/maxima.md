@@ -2,8 +2,6 @@
 
 This guide is for users familiar with Maxima, introducing how to use the Maxima backend through AI conversation.
 
-> **Note**: Maxima backend is disabled by default. To enable, uncomment the line in `manager.py`.
-
 ## What AI Can Do
 
 - Symbolic computation (integration, differentiation, limits)
@@ -111,10 +109,3 @@ Add `simpsum` option: `sum(...), simpsum`
 **Q: Output garbled?**
 
 Maxima uses ASCII art format. Use `string()` to convert or ask AI to interpret the result.
-
-**Q: How to enable Maxima backend?**
-
-Edit `src/scicompute_mcp/manager.py`, uncomment:
-```python
-self._backend_classes["maxima"] = MaximaBackend
-```

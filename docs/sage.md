@@ -76,7 +76,7 @@ Variables persist in session, you can work step by step.
 
 ```
 User: How to use the integrate function?
-AI: (Calls doc("integrate", "sage"))
+AI: (Calls doc(backend="sage", symbol="integrate") to get documentation URL)
 ```
 
 ## Notes

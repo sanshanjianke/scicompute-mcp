@@ -335,7 +335,7 @@ Each platform has its own way to provide custom instructions:
 | Claude Code | `.claude/skills/*.md` | Markdown |
 | OpenCode / Crush | `.opencode/commands/*.md` | Markdown |
 
-This project includes pre-made skill files for both platforms to help the AI assistant use the computing backends effectively.
+Users can create custom skill files if needed.
 
 ## Tools
 
