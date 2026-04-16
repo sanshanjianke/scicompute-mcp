@@ -4,16 +4,27 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.1.4] - 2026-04-16
+
+### Fixed
+
+- **Documentation**: OpenCode 1.4.6+ reads `~/.config/opencode/opencode.json` configuration file (not `opencode mcp add` command).
+- **Documentation**: Recommend pip install path over uvx - uvx downloads dependencies on first run causing timeout.
+
+### Changed
+
+- **README**: Corrected OpenCode 1.4.6+ configuration to use `opencode.json` with absolute path to `scicompute-mcp`.
+- **DELIVERY_TEST.md**: Added successful configuration record with verified MCP connection.
+
 ## [0.1.3] - 2026-04-16
 
 ### Fixed
 
-- **Documentation**: OpenCode 1.4.6+ configuration method - uses `opencode mcp add` command with SQLite database, not JSON config files.
+- **Documentation**: Added Debian/Ubuntu PEP 668 installation instructions.
 
 ### Changed
 
-- **README**: Updated Debian/Ubuntu installation instructions with PEP 668 workaround.
-- **README**: Removed incorrect `.opencode/mcp.json` method, clarified that OpenCode 1.4.6+ requires `opencode mcp add` command.
+- **README**: Added China mirror source instructions for faster installation.
 
 ## [0.1.2] - 2026-04-16
 
