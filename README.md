@@ -256,7 +256,7 @@ export MATHEMATICA_KERNEL_PATH="/usr/local/Wolfram/Wolfram/14.3/Executables/Wolf
 
 #### OpenCode 1.4.6+
 
-OpenCode 1.4.6+ uses command line to add MCP servers:
+OpenCode 1.4.6+ stores MCP configuration in a database, use command line to add servers:
 
 ```bash
 # Add MCP server interactively
@@ -266,20 +266,12 @@ opencode mcp add
 # - Name: scicompute
 # - Type: stdio
 # - Command: /home/username/.local/bin/scicompute-mcp
+
+# Verify
+opencode mcp list
 ```
 
-Or create `.opencode/mcp.json` in your project directory:
-
-```json
-{
-  "servers": {
-    "scicompute": {
-      "type": "stdio",
-      "command": "/home/username/.local/bin/scicompute-mcp"
-    }
-  }
-}
-```
+> **Note**: OpenCode 1.4.6+ does NOT read JSON configuration files. You must use `opencode mcp add` command.
 
 #### Older OpenCode versions (`.opencode.json`)
 

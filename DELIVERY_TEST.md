@@ -114,6 +114,10 @@ octave: disabling GUI features
 | `~/.opencode.json` | `{"mcpServers": {...}}` | ❌ 未被读取 |
 | `~/.config/opencode/opencode.json` | `{"mcpServers": {...}}` | ❌ 报错 "Unrecognized key: mcpServers" |
 | `.opencode/mcp.json` | `{"servers": {...}}` | ❌ 未被读取 |
+| `~/.config/opencode/mcp.json` | `{"servers": {...}}` | ❌ 未被读取 |
+| `~/.local/share/opencode/opencode.db` | SQLite database | ✅ 实际使用的配置存储 |
+
+**重要发现**: OpenCode 1.4.6 使用 SQLite 数据库存储 MCP 配置，不读取任何 JSON 配置文件！
 
 ### 3.2 OpenCode MCP 命令
 
