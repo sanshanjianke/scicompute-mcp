@@ -40,11 +40,11 @@ class RBackend(ComputeBackend):
     def start(self) -> bool:
         global _process
         with _lock:
-            # 检查进程是否存活
+            # Check if process is alive
             if _process is not None and _process.poll() is None:
                 return True
             
-            # 进程死亡或不存在，重置并重新启动
+            # Process died or doesn't exist, reset and restart
             _process = None
 
             try:
@@ -89,7 +89,7 @@ class RBackend(ComputeBackend):
         return output
 
     def evaluate(self, code: str, timeout: float = 30.0) -> Result:
-        # 检查进程是否存活，如果死亡则尝试重启
+        # Check if process is alive, restart if dead
         if _process is None or _process.poll() is not None:
             if not self.start():
                 return Result(success=False, content=[ErrorContent(message="R not started and cannot restart")])
@@ -154,7 +154,7 @@ class RBackend(ComputeBackend):
         _process.stdin.flush()
 
         time.sleep(0.1)
-        # 只等待短时间读取输出，不是 timeout
+        # Only wait short time to read output, not the full timeout
         output = self._read_available(timeout=1.0)
 
         # Clean output

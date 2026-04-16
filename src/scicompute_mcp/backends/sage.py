@@ -179,7 +179,7 @@ class SageBackend(ComputeBackend):
         _process.stdin.flush()
 
         time.sleep(0.2)
-        # 只等待短时间读取输出，不是 timeout
+        # Only wait short time to read output, not the full timeout
         output = self._read_available(timeout=1.0)
 
         result_text = self._clean_output(output)

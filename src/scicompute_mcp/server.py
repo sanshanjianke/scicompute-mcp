@@ -26,7 +26,7 @@ def _log(msg):
         pass
 
 def _log_stack():
-    """记录调用栈"""
+    """Log call stack"""
     try:
         stack = ''.join(traceback.format_stack()[-6:-1])
         _log(f"  Call stack:\n{stack}")
@@ -217,7 +217,7 @@ async def list_tools() -> list[Tool]:
 
 
 def _safe_process_content(item) -> list:
-    """安全处理内容项，捕获所有异常"""
+    """Safely process content item, catching all exceptions"""
     content = []
     try:
         _log(f"    _safe_process_content: type={type(item).__name__}")
@@ -269,7 +269,7 @@ async def call_tool(name: str, arguments: dict) -> list:
             _log(f"  COMPUTE: backend={backend}, code_len={len(code)}")
 
             try:
-                # 直接调用，测试是否是线程池导致的问题
+                # Direct call to test if thread pool causes issues
                 result = manager.compute(code, backend)
                 _log(f"  compute returned: success={result.success}, content_count={len(result.content)}")
             except Exception as e:
@@ -375,7 +375,7 @@ async def run():
         raise
     finally:
         _log("=== run() finally block ===")
-        # 确保所有输出已刷新
+        # Ensure all output is flushed
         sys.stdout.flush()
         sys.stderr.flush()
 

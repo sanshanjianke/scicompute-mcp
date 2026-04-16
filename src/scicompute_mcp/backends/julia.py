@@ -19,8 +19,8 @@ from .base import ComputeBackend, Result, TextContent, ImageContent, ErrorConten
 _server_process = None
 _server_port = 8765
 _server_lock = threading.Lock()
-_server_ready = threading.Event()  # 用于标记服务器是否就绪
-_prestarting = False  # 是否正在预启动
+_server_ready = threading.Event()  # Mark if server is ready
+_prestarting = False  # Whether currently pre-starting
 
 JULIA_SERVER_CODE = '''
 using HTTP
@@ -84,7 +84,7 @@ JULIA_PATH = _find_julia()
 
 
 def _prestart_server():
-    """在后台线程中预启动 Julia 服务器"""
+    """Pre-start Julia server in background thread"""
     global _server_process, _prestarting
     with _server_lock:
         if _server_process is not None and _server_process.poll() is None:
@@ -97,11 +97,11 @@ def _prestart_server():
         server_code = JULIA_SERVER_CODE.format(port=_server_port)
         _server_process = subprocess.Popen(
             [JULIA_PATH, "-e", server_code],
-            stdin=subprocess.DEVNULL,  # 不继承 stdin
+            stdin=subprocess.DEVNULL,  # Don't inherit stdin
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL
         )
-        # 等待服务器就绪
+        # Wait for server to be ready
         start_time = time.time()
         while time.time() - start_time < 10:
             try:
@@ -122,10 +122,10 @@ def _prestart_server():
         _prestarting = False
 
 
-# 在模块加载时启动后台线程预启动 Julia 服务器
+# Pre-start Julia server in background thread when module loads
 def _init_julia():
-    """初始化 Julia 后台服务"""
-    # 暂时禁用预启动，测试是否是线程导致的问题
+    """Initialize Julia background service"""
+    # Temporarily disable pre-start, testing if threads cause issues
     pass
     # import shutil
     # julia_available = shutil.which("julia") is not None or os.path.exists(JULIA_PATH)
@@ -152,9 +152,9 @@ class JuliaBackend(ComputeBackend):
         return shutil.which("julia") is not None or os.path.exists(JULIA_PATH)
 
     def _wait_for_server(self, timeout: float = 10.0) -> bool:
-        """等待服务器启动（非阻塞方式）"""
+        """Wait for server to start (non-blocking)"""
         start_time = time.time()
-        poll_interval = 0.05  # 50ms 轮询间隔
+        poll_interval = 0.05  # 50ms polling interval
         while time.time() - start_time < timeout:
             try:
                 req = urllib.request.Request(
@@ -173,10 +173,10 @@ class JuliaBackend(ComputeBackend):
         global _server_process, _server_ready
         with _server_lock:
             if _server_process is not None and _server_process.poll() is None:
-                # 服务器已在运行，检查是否真的就绪
+                # Server is running, check if it's really ready
                 if self._wait_for_server(1.0):
                     return True
-                # 服务器进程存在但无法连接，可能已崩溃
+                # Server process exists but can't connect, may have crashed
                 _server_process.terminate()
                 _server_process = None
 
@@ -184,16 +184,16 @@ class JuliaBackend(ComputeBackend):
                 server_code = JULIA_SERVER_CODE.format(port=_server_port)
 
                 # Start Julia server
-                # 确保子进程不继承父进程的 stdin
+                # Ensure subprocess doesn't inherit parent's stdin
                 _server_process = subprocess.Popen(
                     [JULIA_PATH, "-e", server_code],
-                    stdin=subprocess.DEVNULL,  # 不继承 stdin
+                    stdin=subprocess.DEVNULL,  # Don't inherit stdin
                     stdout=subprocess.DEVNULL,
                     stderr=subprocess.DEVNULL
                 )
 
-                # 非阻塞等待 - 给一个短暂的时间让进程启动
-                # 但不阻塞整个事件循环
+                # Non-blocking wait - give process time to start
+                # But don't block entire event loop
                 return self._wait_for_server(15.0)
 
             except Exception as e:
@@ -283,5 +283,5 @@ class JuliaBackend(ComputeBackend):
                 _server_process = None
 
 
-# 模块加载时预启动 Julia 服务器（在类定义之后）
+# Pre-start Julia server when module loads (after class definition)
 _init_julia()
