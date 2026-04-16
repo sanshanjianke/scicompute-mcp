@@ -142,24 +142,41 @@ Planned to add MATLAB and Maple backend support, but software not yet installed.
 
 ## Julia Backend MCP Connection Issue
 
-**Status**: Confirmed OpenCode Bug
+**Status**: Confirmed Client Bug (OpenCode + Claude Code)
 **Priority**: High
 **Reported**: 2026-04-15
+**Updated**: 2026-04-16
 
 ### Problem
 
-Julia 后端在 opencode 中会在几次调用后断开 MCP 连接。
+Julia 后端在客户端中会在几次调用后断开 MCP 连接。
 
 ### Root Cause
 
-这是 **opencode 客户端的 bug**，不是后端问题。
+这是 **客户端的 bug**，不是后端问题。
 
 测试证明：
 1. **stdio 模式** - 断开连接
 2. **juliacall (Python binding)** - 断开连接
 3. **HTTP 服务器模式** - 仍然断开连接
 
-即使完全避免 stdio（使用 HTTP 服务器），opencode 仍然在几次调用后主动关闭连接。
+即使完全避免 stdio（使用 HTTP 服务器），客户端仍然在几次调用后主动关闭连接。
+
+### 2026-04-16 新发现
+
+**问题不是 Julia 特有的！** 测试表明 py_scientific 后端也有同样的问题：
+
+```
+py_scientific: 第1次成功，第2次断开，第3次成功，第4次断开...
+julia: 第1次成功，第2次断开，第3次成功，第4次断开...
+```
+
+服务端日志显示请求处理成功，但客户端在发送响应前断开连接：
+```
+anyio.ClosedResourceError
+```
+
+这确认了是 **Claude Code 客户端** 的 bug，与后端实现无关。
 
 ### Related Issues
 
@@ -167,21 +184,22 @@ Julia 后端在 opencode 中会在几次调用后断开 MCP 连接。
 
 ### Impact
 
-| Backend | Implementation | OpenCode | Notes |
-|---------|---------------|----------|-------|
-| Julia | HTTP server | ❌ | Disconnected after ~5 calls |
-| Octave | oct2py | ✅ | Works (different code path?) |
-| Mathematica | WolframLanguageForPython | ✅ | Works |
-| R | subprocess + stdio | ✅ | Works |
-| Sage | subprocess + stdio | ✅ | Works |
+| Backend | Implementation | Claude Code | Notes |
+|---------|---------------|-------------|-------|
+| Julia | HTTP server | ❌ | Intermittent disconnection |
+| py_scientific | Python native | ❌ | Intermittent disconnection |
+| Octave | oct2py | ? | Not tested |
+| Mathematica | WolframLanguageForPython | ? | Not tested |
+| R | subprocess + stdio | ? | Not tested |
+| Sage | subprocess + stdio | ? | Not tested |
 
 ### Current Implementation
 
-Julia 后端使用 HTTP 服务器模式，等待 opencode 修复后应该能正常工作。
+Julia 后端使用 HTTP 服务器模式，并添加了预启动机制避免首次调用延迟。
 
 ### Workaround
 
-暂时使用其他后端（Octave, Mathematica, R, Sage）进行科学计算。
+暂时使用其他后端（Octave, Mathematica, R, Sage）进行科学计算，或者使用 CLI 模式而非 VSCode 扩展。
 
 ---
 
