@@ -76,6 +76,29 @@ pip install scicompute-mcp
 scicompute-mcp
 ```
 
+### Debian 12+ / Ubuntu 23.04+
+
+These systems enable PEP 668 by default, which prevents direct pip installs. Use one of these methods:
+
+```bash
+# Method 1: Use --break-system-packages (quick)
+pip install --break-system-packages scicompute-mcp
+
+# Method 2: Use pipx (recommended for CLI tools)
+sudo apt install -y pipx
+pipx install scicompute-mcp
+
+# Method 3: Use China mirror (faster in China)
+pip install --break-system-packages -i https://pypi.tuna.tsinghua.edu.cn/simple scicompute-mcp
+```
+
+After installation, add `~/.local/bin` to PATH if needed:
+
+```bash
+echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc
+source ~/.bashrc
+```
+
 ### Install with Optional Backends
 
 ```bash
