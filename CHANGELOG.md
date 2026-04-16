@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.1.7] - 2026-04-16
+
+### Changed
+
+- **Documentation**: Updated README to reflect doc tool removal and skill-based approach.
+
 ## [0.1.6] - 2026-04-16
 
 ### Removed
