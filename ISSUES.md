@@ -142,7 +142,7 @@ Planned to add MATLAB and Maple backend support, but software not yet installed.
 
 ## Julia Backend MCP Connection Issue
 
-**Status**: Confirmed Client Bug (OpenCode + Claude Code)
+**Status**: ✅ **FIXED**
 **Priority**: High
 **Reported**: 2026-04-15
 **Updated**: 2026-04-16
@@ -153,53 +153,33 @@ Julia 后端在客户端中会在几次调用后断开 MCP 连接。
 
 ### Root Cause
 
-这是 **客户端的 bug**，不是后端问题。
+**子进程继承了父进程的 stdin 文件描述符！**
 
-测试证明：
-1. **stdio 模式** - 断开连接
-2. **juliacall (Python binding)** - 断开连接
-3. **HTTP 服务器模式** - 仍然断开连接
+Julia 后端使用 `subprocess.Popen` 启动子进程时，默认情况下子进程会继承父进程的 stdin。这会干扰 MCP 服务器的 stdio 通信，导致连接断开。
 
-即使完全避免 stdio（使用 HTTP 服务器），客户端仍然在几次调用后主动关闭连接。
+### Fix
 
-### 2026-04-16 新发现
+在 `subprocess.Popen` 中添加 `stdin=subprocess.DEVNULL`：
 
-**问题不是 Julia 特有的！** 测试表明 py_scientific 后端也有同样的问题：
-
+```python
+_process = subprocess.Popen(
+    [JULIA_PATH, "-e", server_code],
+    stdin=subprocess.DEVNULL,  # 关键：不继承 stdin
+    stdout=subprocess.DEVNULL,
+    stderr=subprocess.DEVNULL
+)
 ```
-py_scientific: 第1次成功，第2次断开，第3次成功，第4次断开...
-julia: 第1次成功，第2次断开，第3次成功，第4次断开...
-```
-
-服务端日志显示请求处理成功，但客户端在发送响应前断开连接：
-```
-anyio.ClosedResourceError
-```
-
-这确认了是 **Claude Code 客户端** 的 bug，与后端实现无关。
-
-### Related Issues
-
-- [OpenCode #21516](https://github.com/anomalyco/opencode/issues/21516) - MCP stdio transport sends batched requests without proper flush
 
 ### Impact
 
-| Backend | Implementation | Claude Code | Notes |
-|---------|---------------|-------------|-------|
-| Julia | HTTP server | ❌ | Intermittent disconnection |
-| py_scientific | Python native | ❌ | Intermittent disconnection |
-| Octave | oct2py | ? | Not tested |
-| Mathematica | WolframLanguageForPython | ? | Not tested |
-| R | subprocess + stdio | ? | Not tested |
-| Sage | subprocess + stdio | ? | Not tested |
+| Backend | Before Fix | After Fix |
+|---------|------------|-----------|
+| Julia | ❌ Disconnect after 2-3 calls | ✅ Works correctly |
+| py_scientific | ❌ Same issue | Needs same fix |
 
-### Current Implementation
+### Lesson Learned
 
-Julia 后端使用 HTTP 服务器模式，并添加了预启动机制避免首次调用延迟。
-
-### Workaround
-
-暂时使用其他后端（Octave, Mathematica, R, Sage）进行科学计算，或者使用 CLI 模式而非 VSCode 扩展。
+当 MCP 服务器使用 stdio 通信时，所有子进程必须明确设置 `stdin=subprocess.DEVNULL`，否则子进程会干扰父进程的 stdio 通信。
 
 ---
 
