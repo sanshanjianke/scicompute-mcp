@@ -128,24 +128,6 @@ async def list_tools() -> list[Tool]:
                     }
                 }
             }
-        ),
-        Tool(
-            name="doc",
-            description="Query documentation for a symbol. Returns usage information and options. Useful when you need to understand how to use a function.",
-            inputSchema={
-                "type": "object",
-                "properties": {
-                    "symbol": {
-                        "type": "string",
-                        "description": "Symbol name to query (e.g., 'Plot', 'NDSolve', 'Import')"
-                    },
-                    "backend": {
-                        "type": "string",
-                        "description": "Backend name (default: mathematica)"
-                    }
-                },
-                "required": ["symbol"]
-            }
         )
     ]
 
@@ -242,22 +224,6 @@ async def call_tool(name: str, arguments: dict) -> list:
                 _log(f"  stop error: {e}")
                 return [MCPTextContent(type="text", text=f"Error: {e}")]
 
-        elif name == "doc":
-            _log(f"  DOC")
-            symbol = arguments.get("symbol", "")
-            backend = arguments.get("backend", "mathematica")
-
-            try:
-                # 直接调用
-                result = manager.doc(symbol, backend)
-                content = []
-                for item in result.content:
-                    content.extend(_safe_process_content(item))
-                return content
-            except Exception as e:
-                _log(f"  doc error: {e}")
-                return [MCPTextContent(type="text", text=f"Error: {e}")]
-        
         else:
             return [MCPTextContent(type="text", text=f"Unknown tool: {name}")]
             

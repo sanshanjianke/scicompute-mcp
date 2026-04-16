@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.1.6] - 2026-04-16
+
+### Removed
+
+- **doc tool**: Removed in favor of skill-based documentation approach. See `.opencode/skills/doc-expert.md` for how to fetch documentation using Task tool with subagents.
+
+### Added
+
+- **doc-expert.md skill**: Defines documentation URLs for all backends and how to use Task tool to fetch documentation.
+
 ## [0.1.5] - 2026-04-16
 
 ### Changed
