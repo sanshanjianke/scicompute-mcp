@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
-## [1.0.2] - 2026-04-16
+## [0.1.2] - 2026-04-16
 
 ### Fixed
 
@@ -18,7 +18,7 @@ All notable changes to this project will be documented in this file.
 
 - **R Backend**: Improved process lifecycle management with automatic recovery on crash.
 
-## [1.0.1] - 2026-04-14
+## [0.1.1] - 2026-04-14
 
 ### Fixed
 
@@ -67,7 +67,7 @@ This captures:
 - `Result`: The final computation result
 - `MessagesText`: Any warning/error messages
 
-## [1.0.0] - 2026-03-18
+## [0.1.0] - 2026-03-18
 
 ### Added
 
