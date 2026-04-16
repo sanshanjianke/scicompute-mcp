@@ -22,9 +22,7 @@ MCP server for scientific computing with multiple backends. Provides AI coding a
 | R | ✅ Ready | numeric, plot |
 | Octave | ✅ Ready | numeric, plot |
 | Julia | ✅ Ready | numeric, plot |
-| Maxima | 🔒 Reserved | symbolic, numeric, plot |
-
-> **Note**: Maxima backend is available but disabled by default. To enable, uncomment the registration line in `manager.py`.
+| Maxima | ✅ Ready | symbolic, numeric, plot |
 
 ### MATLAB Support
 

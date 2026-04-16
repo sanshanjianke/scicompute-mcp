@@ -39,8 +39,7 @@ class BackendManager:
     def _register_backend_classes(self):
         self._backend_classes["mathematica"] = MathematicaBackend
         self._backend_classes["octave"] = OctaveBackend
-        # maxima is reserved but disabled by default; uncomment to enable
-        # self._backend_classes["maxima"] = MaximaBackend
+        self._backend_classes["maxima"] = MaximaBackend
         self._backend_classes["py_scientific"] = PyScientificBackend
         self._backend_classes["r"] = RBackend
         self._backend_classes["sage"] = SageBackend
@@ -54,7 +53,7 @@ class BackendManager:
             self._priority = [p.strip() for p in env_priority.split(",")]
             _log(f"_load_priority() from env: {self._priority}")
         else:
-            self._priority = ["mathematica", "sage", "julia", "py_scientific", "r", "octave", "matlab"]
+            self._priority = ["mathematica", "sage", "julia", "py_scientific", "r", "octave", "matlab", "maxima"]
             _log(f"_load_priority() default: {self._priority}")
 
     def list_available(self) -> list[dict]:
