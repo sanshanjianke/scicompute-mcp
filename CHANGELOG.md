@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.1.3] - 2026-04-16
+
+### Fixed
+
+- **Documentation**: OpenCode 1.4.6+ configuration method - uses `opencode mcp add` command with SQLite database, not JSON config files.
+
+### Changed
+
+- **README**: Updated Debian/Ubuntu installation instructions with PEP 668 workaround.
+- **README**: Removed incorrect `.opencode/mcp.json` method, clarified that OpenCode 1.4.6+ requires `opencode mcp add` command.
+
 ## [0.1.2] - 2026-04-16
 
 ### Fixed
