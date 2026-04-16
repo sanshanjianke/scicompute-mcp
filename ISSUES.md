@@ -183,6 +183,56 @@ _process = subprocess.Popen(
 
 ---
 
+## R Backend Process Recovery Issue
+
+**Status**: ✅ **FIXED**
+**Priority**: High
+**Reported**: 2026-04-16
+
+### Problem
+
+R 后端在进程崩溃后无法自动恢复，后续调用都会失败。
+
+### Root Cause
+
+1. `is_running` 属性只检查 `_process is not None`，没有检查进程是否真的活着
+2. `start()` 方法检查 `_process is not None` 但进程可能已经死亡
+3. `evaluate()` 方法没有在进程死亡时尝试重启
+
+### Fix
+
+```python
+# 1. is_running 检查进程是否真的活着
+@property
+def is_running(self) -> bool:
+    return _process is not None and _process.poll() is None
+
+# 2. start() 检查进程是否存活
+def start(self) -> bool:
+    if _process is not None and _process.poll() is None:
+        return True
+    _process = None  # 重置死亡进程
+    # ... 启动新进程
+
+# 3. evaluate() 自动重启死亡进程
+def evaluate(self, code: str, timeout: float = 30.0) -> Result:
+    if _process is None or _process.poll() is not None:
+        if not self.start():
+            return Result(success=False, ...)
+```
+
+### Test Results
+
+| 功能 | 状态 |
+|------|------|
+| 变量持久化 | ✅ |
+| 文件读写 | ✅ |
+| 统计分析 | ✅ |
+| 绘图 | ✅ |
+| 进程崩溃后自动恢复 | ✅ |
+
+---
+
 ## Octave Backend oct2py Dependency
 
 **Status**: Known Limitation

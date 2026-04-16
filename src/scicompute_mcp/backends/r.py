@@ -27,7 +27,7 @@ class RBackend(ComputeBackend):
 
     @property
     def is_running(self) -> bool:
-        return _process is not None
+        return _process is not None and _process.poll() is None
 
     @classmethod
     def is_available(cls) -> bool:
@@ -40,8 +40,12 @@ class RBackend(ComputeBackend):
     def start(self) -> bool:
         global _process
         with _lock:
-            if _process is not None:
+            # 检查进程是否存活
+            if _process is not None and _process.poll() is None:
                 return True
+            
+            # 进程死亡或不存在，重置并重新启动
+            _process = None
 
             try:
                 _process = subprocess.Popen(
@@ -85,8 +89,10 @@ class RBackend(ComputeBackend):
         return output
 
     def evaluate(self, code: str, timeout: float = 30.0) -> Result:
-        if _process is None:
-            return Result(success=False, content=[ErrorContent(message="R not started")])
+        # 检查进程是否存活，如果死亡则尝试重启
+        if _process is None or _process.poll() is not None:
+            if not self.start():
+                return Result(success=False, content=[ErrorContent(message="R not started and cannot restart")])
 
         # Detect if code contains plotting
         has_plot = self._detect_plot(code)
