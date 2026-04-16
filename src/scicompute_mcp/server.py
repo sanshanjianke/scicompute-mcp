@@ -92,7 +92,7 @@ async def list_tools() -> list[Tool]:
     return [
         Tool(
             name="compute",
-            description="Execute scientific computing code. Supports multiple backends (mathematica, sage, py_scientific, r, octave, julia, maxima). Use 'backend' parameter to specify, or leave empty for auto-select.",
+            description="Execute scientific computing code. Supports multiple backends (mathematica, sage, py_scientific, r, octave, julia, maxima). Use 'backend' parameter to specify, or leave empty for auto-select. For documentation URLs, see docs/doc-expert.md.",
             inputSchema={
                 "type": "object",
                 "properties": {

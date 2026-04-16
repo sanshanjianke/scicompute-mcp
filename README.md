@@ -416,7 +416,7 @@ Look up NDSolve documentation
 
 When you need detailed documentation for a function:
 
-1. The AI can use the **doc-expert skill** (`.opencode/skills/doc-expert.md`)
+1. Read `docs/doc-expert.md` for documentation URLs by backend
 2. Launch a subagent with Task tool to fetch and extract documentation
 3. Supported backends: Mathematica, Python Scientific, R, Julia, Octave, SageMath, Maxima, MATLAB
 
@@ -435,7 +435,7 @@ Task(
 - `docs/r.md` - R collaboration guide
 - `docs/maxima.md` - Maxima collaboration guide
 - `docs/octave.md` - Octave collaboration guide
-- `.opencode/skills/doc-expert.md` - Documentation URLs and fetch guide
+- `docs/doc-expert.md` - Documentation URLs and fetch guide
 
 ## Requirements
 
