@@ -295,6 +295,9 @@ async def run():
         raise
     finally:
         _log("=== run() finally block ===")
+        # 确保所有输出已刷新
+        sys.stdout.flush()
+        sys.stderr.flush()
 
 
 def main():

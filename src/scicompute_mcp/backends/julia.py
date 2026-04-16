@@ -97,6 +97,7 @@ def _prestart_server():
         server_code = JULIA_SERVER_CODE.format(port=_server_port)
         _server_process = subprocess.Popen(
             [JULIA_PATH, "-e", server_code],
+            stdin=subprocess.DEVNULL,  # 不继承 stdin
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL
         )
@@ -183,8 +184,10 @@ class JuliaBackend(ComputeBackend):
                 server_code = JULIA_SERVER_CODE.format(port=_server_port)
 
                 # Start Julia server
+                # 确保子进程不继承父进程的 stdin
                 _server_process = subprocess.Popen(
                     [JULIA_PATH, "-e", server_code],
+                    stdin=subprocess.DEVNULL,  # 不继承 stdin
                     stdout=subprocess.DEVNULL,
                     stderr=subprocess.DEVNULL
                 )
