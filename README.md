@@ -256,32 +256,48 @@ export MATHEMATICA_KERNEL_PATH="/usr/local/Wolfram/Wolfram/14.3/Executables/Wolf
 
 #### OpenCode 1.4.6+
 
-OpenCode 1.4.6+ stores MCP configuration in a database, use command line to add servers:
+OpenCode 1.4.6+ reads configuration from `~/.config/opencode/opencode.json`:
 
+```json
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "scicompute": {
+      "type": "local",
+      "command": ["/home/username/.local/bin/scicompute-mcp"]
+    }
+  }
+}
+```
+
+> **Important**: Use absolute path to `scicompute-mcp` (from `pip install`). Avoid `uvx` because it downloads dependencies on first run, which may timeout.
+
+To verify:
 ```bash
-# Add MCP server interactively
-opencode mcp add
-
-# Then enter:
-# - Name: scicompute
-# - Type: stdio
-# - Command: /home/username/.local/bin/scicompute-mcp
-
-# Verify
 opencode mcp list
 ```
 
-> **Note**: OpenCode 1.4.6+ does NOT read JSON configuration files. You must use `opencode mcp add` command.
+#### Using `opencode mcp add` (Interactive)
 
-#### Older OpenCode versions (`.opencode.json`)
+Alternatively, add via interactive command:
+
+```bash
+opencode mcp add
+# Name: scicompute
+# Type: Local
+# Command: /home/username/.local/bin/scicompute-mcp
+```
+
+#### Older OpenCode versions
+
+For older versions, use `~/.opencode.json`:
 
 ```json
 {
   "mcpServers": {
     "scicompute": {
       "type": "stdio",
-      "command": "uvx",
-      "args": ["scicompute-mcp"]
+      "command": "/home/username/.local/bin/scicompute-mcp"
     }
   }
 }

@@ -268,3 +268,48 @@ opencode mcp list
 | 国内镜像源使用说明 | ✅ 已修复 | 550aa37 |
 | PEP 668 安装说明 | ✅ 已修复 | 550aa37 |
 | PATH 配置说明 | ✅ 已修复 | 550aa37 |
+
+---
+
+## 九、OpenCode MCP 配置成功记录
+
+### 最终配置方案
+
+**配置文件**: `~/.config/opencode/opencode.json`
+
+```json
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "scicompute": {
+      "type": "local",
+      "command": ["/home/ssjk/.local/bin/scicompute-mcp"]
+    }
+  }
+}
+```
+
+### 验证结果
+
+```
+┌  MCP Servers
+│
+●  ✓ scicompute connected
+│      /home/ssjk/.local/bin/scicompute-mcp
+│
+└  1 server(s)
+```
+
+### 关键发现
+
+1. **OpenCode 1.4.6+ 会读取 `~/.config/opencode/opencode.json`**，之前的文档说明有误
+
+2. **避免使用 uvx**：首次运行时会下载大量依赖包（~80MB），导致 30 秒超时。推荐使用 pip 安装后的绝对路径
+
+3. **配置格式**：
+   - ✅ 正确: `"command": ["/home/ssjk/.local/bin/scicompute-mcp"]`
+   - ❌ 超时: `"command": ["uvx", "scicompute-mcp"]`
+
+### 测试时间
+
+2026-04-16 14:10 (UTC+8)
