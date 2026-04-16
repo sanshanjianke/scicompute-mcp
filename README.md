@@ -63,6 +63,8 @@ See the [MATLAB MCP Core Server documentation](https://github.com/matlab/matlab-
 
 ## Installation
 
+> **Tip**: Ask your AI assistant to install it for you! Just say "Install scicompute-mcp" and it will handle everything automatically.
+
 ### Quick Start (Recommended)
 
 ```bash
