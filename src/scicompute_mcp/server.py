@@ -92,7 +92,7 @@ async def list_tools() -> list[Tool]:
     return [
         Tool(
             name="compute",
-            description="Execute scientific computing code. Supports multiple backends (mathematica, matlab, sympy, julia). Use 'backend' parameter to specify, or leave empty for auto-select.",
+            description="Execute scientific computing code. Supports multiple backends (mathematica, sage, py_scientific, r, octave, julia, maxima). Use 'backend' parameter to specify, or leave empty for auto-select.",
             inputSchema={
                 "type": "object",
                 "properties": {
@@ -102,7 +102,7 @@ async def list_tools() -> list[Tool]:
                     },
                     "backend": {
                         "type": "string",
-                        "description": "Backend name (mathematica, matlab, sympy, julia, numpy). Default: auto"
+                        "description": "Backend name (mathematica, sage, py_scientific, r, octave, julia, maxima). Leave empty for auto-select."
                     }
                 },
                 "required": ["code"]
@@ -124,7 +124,7 @@ async def list_tools() -> list[Tool]:
                 "properties": {
                     "backend": {
                         "type": "string",
-                        "description": "Backend name (e.g., 'octave', 'mathematica'). Leave empty to stop all."
+                        "description": "Backend name (e.g., 'octave', 'mathematica'). Leave empty to list running backends."
                     }
                 }
             }

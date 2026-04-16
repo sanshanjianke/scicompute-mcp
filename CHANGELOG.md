@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.1.8] - 2026-04-16
+
+### Added
+
+- **Calling Convention**: Documented MCP tool naming conventions for different clients (Claude Code vs OpenCode) in README.
+
+### Changed
+
+- **Tool Descriptions**: Updated backend list in compute/stop tool descriptions to include all available backends.
+- **scicompute-usage.md skill**: Rewritten to focus on advanced usage patterns, backend selection strategy, syntax differences, and debugging tips.
+
 ## [0.1.7] - 2026-04-16
 
 ### Changed

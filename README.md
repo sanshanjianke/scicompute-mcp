@@ -339,6 +339,17 @@ This project includes pre-made skill files for both platforms to help the AI ass
 
 ## Tools
 
+### Calling Convention
+
+Different MCP clients have different naming conventions for calling tools:
+
+| Client | Format | Example |
+|--------|--------|---------|
+| Claude Code | `mcp__{server}__{tool}` | `mcp__scicompute__compute(code="1+1")` |
+| OpenCode | `{server}_{tool}` | `scicompute_compute(code="1+1")` |
+
+The examples below use the base tool names (`compute`, `list_backends`, `stop`). Your AI assistant will automatically use the correct format for its client.
+
 ### compute(code, backend?)
 
 Execute scientific computing code.
