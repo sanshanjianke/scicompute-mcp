@@ -387,15 +387,6 @@ stop("ALL")     # Stop all running backends
 
 **Safety design**: Calling `stop()` without arguments will NOT stop any backends. It returns a list of running backends. This prevents accidental data loss.
 
-### doc(symbol, backend?)
-
-Query documentation for a symbol.
-
-```python
-doc("Plot3D", "mathematica")  # Mathematica usage
-doc("integrate", "sage")       # SageMath usage
-```
-
 ## Usage Examples
 
 Ask your AI assistant:
@@ -407,7 +398,24 @@ Calculate ∫x²dx from 0 to 1
 
 Solve x² - 4 = 0
 
-Look up NDSolve usage
+Look up NDSolve documentation
+```
+
+## Getting Documentation
+
+When you need detailed documentation for a function:
+
+1. The AI can use the **doc-expert skill** (`.opencode/skills/doc-expert.md`)
+2. Launch a subagent with Task tool to fetch and extract documentation
+3. Supported backends: Mathematica, Python Scientific, R, Julia, Octave, SageMath, Maxima, MATLAB
+
+Example:
+```
+Task(
+  description="Fetch Plot3D docs",
+  prompt="Fetch Mathematica documentation for Plot3D from https://reference.wolfram.com/language/ref/plot3d.html",
+  subagent_type="general"
+)
 ```
 
 ## Documentation
@@ -416,6 +424,7 @@ Look up NDSolve usage
 - `docs/r.md` - R collaboration guide
 - `docs/maxima.md` - Maxima collaboration guide
 - `docs/octave.md` - Octave collaboration guide
+- `.opencode/skills/doc-expert.md` - Documentation URLs and fetch guide
 
 ## Requirements
 

@@ -65,58 +65,27 @@ SageMath's `_execute_plot()` method wraps code as matplotlib format, but SageMat
 
 ## doc Tool RAG Improvement
 
-**Status**: Open
+**Status**: ✅ Resolved
 **Priority**: Low
 **Reported**: 2026-03-18
+**Resolved**: 2026-04-16
 
 ### Problem
 
-Current `doc` tool only calls built-in help commands, limited functionality:
+Original `doc` tool only called built-in help commands with limited functionality.
 
-| Backend | Current Implementation | Issue |
-|---------|------------------------|-------|
-| Mathematica | `Information[symbol, "Usage"]` | Only brief usage |
-| Octave | `help("symbol")` | Terminal help text |
-| SageMath | `symbol?` | IPython help |
-| Python | `inspect.getdoc()` | Only docstring |
-| R | `?symbol` | Brief help |
+### Solution
 
-### Proposal: RAG System
+Removed `doc` tool entirely. Instead, use skill-based approach:
 
-Convert `doc` to a RAG (Retrieval-Augmented Generation) based documentation retrieval system:
+1. Created `.opencode/skills/doc-expert.md` with documentation URLs for all backends
+2. AI uses Task tool to launch subagent for fetching documentation
+3. Subagent uses webfetch to get online documentation
 
-1. **Offline Documentation** - Pre-download official docs for each backend
-2. **Vector Database** - e.g., FAISS, ChromaDB
-3. **Semantic Search** - Retrieve relevant doc snippets based on user queries
-4. **Return to AI** - Provide as context for AI to generate answers
-
-### Technical Approach
-
-```python
-# Example architecture
-class DocRAG:
-    def __init__(self):
-        self.vector_db = ChromaDB()
-        self.embeddings = SentenceTransformer()
-
-    def query(self, question: str, backend: str) -> str:
-        # 1. Vector search
-        docs = self.vector_db.search(question, backend)
-        # 2. Return relevant doc snippets
-        return docs
-```
-
-### TODO
-
-- [ ] Research offline documentation sources (official sites)
-- [ ] Choose vector database (FAISS vs ChromaDB vs others)
-- [ ] Design document chunking strategy
-- [ ] Implement embedding and retrieval
-- [ ] Integrate into MCP tool
-
-### Current Status
-
-Keeping existing `doc` tool as interim solution, RAG system as long-term goal.
+This approach:
+- No need for RAG/vector database complexity
+- Always gets latest documentation from official sources
+- Simpler implementation, no additional dependencies
 
 ---
 
