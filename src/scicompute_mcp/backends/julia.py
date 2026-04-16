@@ -124,12 +124,13 @@ def _prestart_server():
 # 在模块加载时启动后台线程预启动 Julia 服务器
 def _init_julia():
     """初始化 Julia 后台服务"""
-    # 检查 Julia 是否可用（不依赖 JuliaBackend 类）
-    import shutil
-    julia_available = shutil.which("julia") is not None or os.path.exists(JULIA_PATH)
-    if julia_available:
-        t = threading.Thread(target=_prestart_server, daemon=True, name="julia-prestart")
-        t.start()
+    # 暂时禁用预启动，测试是否是线程导致的问题
+    pass
+    # import shutil
+    # julia_available = shutil.which("julia") is not None or os.path.exists(JULIA_PATH)
+    # if julia_available:
+    #     t = threading.Thread(target=_prestart_server, daemon=True, name="julia-prestart")
+    #     t.start()
 
 
 class JuliaBackend(ComputeBackend):

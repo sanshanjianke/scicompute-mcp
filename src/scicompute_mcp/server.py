@@ -1,6 +1,5 @@
 import asyncio
 import atexit
-import concurrent.futures
 import json
 import signal
 import sys
@@ -13,9 +12,6 @@ from mcp.server.stdio import stdio_server
 from mcp.types import Tool, TextContent as MCPTextContent, ImageContent as MCPImageContent
 
 from .manager import BackendManager
-
-# 创建线程池用于执行阻塞操作
-_executor = concurrent.futures.ThreadPoolExecutor(max_workers=4, thread_name_prefix="scicompute_")
 
 LOG_FILE = "/tmp/scicompute_mcp.log"
 
@@ -207,9 +203,8 @@ async def call_tool(name: str, arguments: dict) -> list:
             _log(f"  COMPUTE: backend={backend}, code_len={len(code)}")
 
             try:
-                # 在线程池中执行阻塞操作，避免阻塞事件循环
-                loop = asyncio.get_event_loop()
-                result = await loop.run_in_executor(_executor, manager.compute, code, backend)
+                # 直接调用，测试是否是线程池导致的问题
+                result = manager.compute(code, backend)
                 _log(f"  compute returned: success={result.success}, content_count={len(result.content)}")
             except Exception as e:
                 _log(f"  manager.compute EXCEPTION: {e}")
@@ -253,9 +248,8 @@ async def call_tool(name: str, arguments: dict) -> list:
             backend = arguments.get("backend", "mathematica")
 
             try:
-                # 在线程池中执行阻塞操作
-                loop = asyncio.get_event_loop()
-                result = await loop.run_in_executor(_executor, manager.doc, symbol, backend)
+                # 直接调用
+                result = manager.doc(symbol, backend)
                 content = []
                 for item in result.content:
                     content.extend(_safe_process_content(item))
