@@ -148,7 +148,8 @@ class RBackend(ComputeBackend):
         _process.stdin.flush()
 
         time.sleep(0.1)
-        output = self._read_available(timeout)
+        # 只等待短时间读取输出，不是 timeout
+        output = self._read_available(timeout=1.0)
 
         # Clean output
         result_text = self._clean_output(output)
