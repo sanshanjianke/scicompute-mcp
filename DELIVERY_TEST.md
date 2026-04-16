@@ -183,8 +183,6 @@ OpenCode 1.4.6 的 MCP 配置方式与 README 文档不一致：
 ### 5.1 README 改进
 
 1. **添加 OpenCode 1.4.6+ 配置说明**:
-   ```markdown
-   ### OpenCode 1.4.6+
    
    OpenCode 1.4.6+ 使用命令行添加 MCP 服务器：
    
@@ -195,13 +193,11 @@ OpenCode 1.4.6 的 MCP 配置方式与 README 文档不一致：
    # - Type: stdio
    # - Command: /home/username/.local/bin/scicompute-mcp
    ```
-   ```
 
 2. **更新配置文件格式说明**:
-   ```markdown
+   
    > **注意**: OpenCode 1.4.6+ 不再使用 JSON 配置文件添加 MCP 服务器，
    > 请使用 `opencode mcp add` 命令。
-   ```
 
 ### 5.2 pyproject.toml 改进
 
@@ -249,11 +245,22 @@ opencode mcp list
 - ✅ py_scientific 后端工作正常
 
 ### 待解决项
-- ⚠️ OpenCode 配置方式与 README 不一致
-- ⚠️ 需要更新 README 说明 OpenCode 1.4.6+ 的配置方法
+- ✅ ~~OpenCode 配置方式与 README 不一致~~ (已修复)
+- ✅ ~~需要更新 README 说明 OpenCode 1.4.6+ 的配置方法~~ (已修复)
 - ⚠️ uv/uvx 安装困难，建议优先使用 pip
 
 ### 建议优先级
-1. **高**: 更新 README 说明 OpenCode 1.4.6+ 配置方法
-2. **中**: 添加国内镜像源使用说明
+1. ~~**高**: 更新 README 说明 OpenCode 1.4.6+ 配置方法~~ ✅ 已完成
+2. ~~**中**: 添加国内镜像源使用说明~~ ✅ 已完成
 3. **低**: 优化 Octave X11 警告处理
+
+---
+
+## 八、修复状态
+
+| 问题 | 状态 | 修复提交 |
+|------|------|----------|
+| OpenCode 1.4.6+ 配置说明 | ✅ 已修复 | 771c5f6 |
+| 国内镜像源使用说明 | ✅ 已修复 | 550aa37 |
+| PEP 668 安装说明 | ✅ 已修复 | 550aa37 |
+| PATH 配置说明 | ✅ 已修复 | 550aa37 |
