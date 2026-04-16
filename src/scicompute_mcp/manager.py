@@ -1,5 +1,8 @@
 import os
+import sys
+import traceback
 from typing import Optional, Type
+from datetime import datetime
 
 from .backends.base import ComputeBackend, Result, ErrorContent
 from .backends.mathematica import MathematicaBackend
@@ -11,13 +14,27 @@ from .backends.sage import SageBackend
 from .backends.matlab import MatlabBackend
 
 
+from .backends.julia import JuliaBackend
+
+LOG_FILE = "/tmp/scicompute_mcp.log"
+
+def _log(msg):
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
+    log_line = f"[{timestamp}] [BACKEND MANAGER] {msg}\n"
+    with open(LOG_FILE, "a") as f:
+        f.write(log_line)
+        f.flush()
+
+
 class BackendManager:
     def __init__(self):
+        _log("=== BackendManager.__init__() START ===")
         self._backend_classes: dict[str, Type[ComputeBackend]] = {}
         self._priority: list[str] = []
 
         self._register_backend_classes()
         self._load_priority()
+        _log(f"=== BackendManager.__init__() DONE - registered {len(self._backend_classes)} backends ===")
 
     def _register_backend_classes(self):
         self._backend_classes["mathematica"] = MathematicaBackend
@@ -28,13 +45,17 @@ class BackendManager:
         self._backend_classes["r"] = RBackend
         self._backend_classes["sage"] = SageBackend
         self._backend_classes["matlab"] = MatlabBackend
+        self._backend_classes["julia"] = JuliaBackend
+        _log(f"_register_backend_classes() registered: {list(self._backend_classes.keys())}")
 
     def _load_priority(self):
         env_priority = os.environ.get("SCICOMPUTE_PRIORITY", "")
         if env_priority:
             self._priority = [p.strip() for p in env_priority.split(",")]
+            _log(f"_load_priority() from env: {self._priority}")
         else:
-            self._priority = ["mathematica", "sage", "py_scientific", "r", "octave", "matlab"]
+            self._priority = ["mathematica", "sage", "julia", "py_scientific", "r", "octave", "matlab"]
+            _log(f"_load_priority() default: {self._priority}")
 
     def list_available(self) -> list[dict]:
         result = []
@@ -62,21 +83,52 @@ class BackendManager:
         return None, "No available backends"
 
     def compute(self, code: str, backend: Optional[str] = None, timeout: float = 30.0) -> Result:
-        selected, msg = self.select_backend(backend)
-        if not selected:
-            available = [b["name"] for b in self.list_available()]
+        _log(f"=== compute() START ===")
+        _log(f"  backend requested: {backend}")
+        _log(f"  code length: {len(code)}")
+        _log(f"  code preview: {code[:100]}{'...' if len(code) > 100 else ''}")
+        _log(f"  timeout: {timeout}")
+        
+        try:
+            selected, msg = self.select_backend(backend)
+            if not selected:
+                available = [b["name"] for b in self.list_available()]
+                _log(f"  ERROR: No backend selected - {msg}")
+                _log(f"  Available backends: {available}")
+                return Result(
+                    success=False,
+                    content=[ErrorContent(message=f"{msg}. Available: {available}")]
+                )
+
+            _log(f"  Selected backend: {selected.name}")
+            
+            _log(f"  Calling backend.start()...")
+            if not selected.start():
+                _log(f"  ERROR: Failed to start backend {selected.name}")
+                return Result(
+                    success=False,
+                    content=[ErrorContent(message=f"Failed to start {selected.name}")]
+                )
+            _log(f"  Backend started successfully")
+
+            _log(f"  Calling backend.evaluate()...")
+            result = selected.evaluate(code, timeout)
+            _log(f"  evaluate() returned: success={result.success}, content_count={len(result.content)}")
+            if result.content:
+                for i, c in enumerate(result.content):
+                    _log(f"    content[{i}]: type={c.type}")
+            _log(f"=== compute() END (success) ===")
+            return result
+            
+        except Exception as e:
+            _log(f"=== compute() UNEXPECTED EXCEPTION ===")
+            _log(f"  Exception type: {type(e).__name__}")
+            _log(f"  Exception message: {e}")
+            _log(f"  Traceback:\n{traceback.format_exc()}")
             return Result(
                 success=False,
-                content=[ErrorContent(message=f"{msg}. Available: {available}")]
+                content=[ErrorContent(message=f"Internal error: {type(e).__name__}: {e}")]
             )
-
-        if not selected.start():
-            return Result(
-                success=False,
-                content=[ErrorContent(message=f"Failed to start {selected.name}")]
-            )
-
-        return selected.evaluate(code, timeout)
 
     def stop(self, backend: Optional[str] = None) -> dict:
         """Stop backend and clear all state.
@@ -190,6 +242,8 @@ class BackendManager:
             doc_code = f'{symbol}?'
         elif selected.name == "matlab":
             doc_code = f'help {symbol}'
+        elif selected.name == "julia":
+            doc_code = f'@doc {symbol}'
         else:
             return Result(
                 success=False,

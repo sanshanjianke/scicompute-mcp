@@ -140,6 +140,51 @@ Planned to add MATLAB and Maple backend support, but software not yet installed.
 
 ---
 
+## Julia Backend MCP Connection Issue
+
+**Status**: Confirmed OpenCode Bug
+**Priority**: High
+**Reported**: 2026-04-15
+
+### Problem
+
+Julia 后端在 opencode 中会在几次调用后断开 MCP 连接。
+
+### Root Cause
+
+这是 **opencode 客户端的 bug**，不是后端问题。
+
+测试证明：
+1. **stdio 模式** - 断开连接
+2. **juliacall (Python binding)** - 断开连接
+3. **HTTP 服务器模式** - 仍然断开连接
+
+即使完全避免 stdio（使用 HTTP 服务器），opencode 仍然在几次调用后主动关闭连接。
+
+### Related Issues
+
+- [OpenCode #21516](https://github.com/anomalyco/opencode/issues/21516) - MCP stdio transport sends batched requests without proper flush
+
+### Impact
+
+| Backend | Implementation | OpenCode | Notes |
+|---------|---------------|----------|-------|
+| Julia | HTTP server | ❌ | Disconnected after ~5 calls |
+| Octave | oct2py | ✅ | Works (different code path?) |
+| Mathematica | WolframLanguageForPython | ✅ | Works |
+| R | subprocess + stdio | ✅ | Works |
+| Sage | subprocess + stdio | ✅ | Works |
+
+### Current Implementation
+
+Julia 后端使用 HTTP 服务器模式，等待 opencode 修复后应该能正常工作。
+
+### Workaround
+
+暂时使用其他后端（Octave, Mathematica, R, Sage）进行科学计算。
+
+---
+
 ## Octave Backend oct2py Dependency
 
 **Status**: Known Limitation

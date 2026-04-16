@@ -7,6 +7,9 @@ wolframclient>=1.4.0
 # Octave backend (GitHub version required for newer Python support)
 oct2py @ git+https://github.com/blink1073/oct2py.git@main
 
+# Julia backend
+juliacall>=0.9.0
+
 # Python scientific computing backend
 numpy>=2.0.0
 scipy>=1.10.0

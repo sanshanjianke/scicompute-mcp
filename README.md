@@ -21,6 +21,7 @@ MCP server for scientific computing with multiple backends. Provides AI coding a
 | Python Scientific | ✅ Ready | symbolic, numeric, plot |
 | R | ✅ Ready | numeric, plot |
 | Octave | ✅ Ready | numeric, plot |
+| Julia | ✅ Ready | numeric, plot |
 | Maxima | 🔒 Reserved | symbolic, numeric, plot |
 | Julia | 🔲 Planned | numeric, plot |
 
@@ -171,6 +172,18 @@ brew install octave gnuplot
 # Windows: Download Octave installer
 ```
 
+#### Julia Backend
+
+```bash
+# Install Julia (recommended: use juliaup)
+curl -fsSL https://install.julialang.org | sh
+
+# Or download from https://julialang.org/downloads/
+
+# Install Python package
+pip install juliacall
+```
+
 #### Mathematica Backend
 
 1. Purchase and install from [Wolfram website](https://www.wolfram.com/mathematica/)
@@ -188,7 +201,8 @@ export MATHEMATICA_KERNEL_PATH="/usr/local/Wolfram/Wolfram/14.3/Executables/Wolf
 |----------|-------------|---------|
 | `SAGE_PATH` | SageMath path | `$HOME/miniconda3/envs/sage/bin/sage` |
 | `MATHEMATICA_KERNEL_PATH` | WolframKernel path | `/usr/local/Wolfram/Wolfram/14.3/Executables/WolframKernel` |
-| `SCICOMPUTE_PRIORITY` | Backend priority | `mathematica,sage,py_scientific` |
+| `JULIA_PATH` | Julia executable path | `$HOME/.juliaup/bin/julia` |
+| `SCICOMPUTE_PRIORITY` | Backend priority | `mathematica,sage,julia,py_scientific` |
 
 ### Claude Code (`.mcp.json`)
 
@@ -290,6 +304,10 @@ compute("hist(rnorm(1000))", "r")
 
 # Python Scientific
 compute("sp.integrate(sp.sin(sp.Symbol('x')), sp.Symbol('x'))", "py_scientific")
+
+# Julia
+compute("plot(rand(10))", "julia")
+compute("sqrt(2.0)", "julia")
 
 # MATLAB
 compute("plot(1:10, rand(1,10))", "matlab")
