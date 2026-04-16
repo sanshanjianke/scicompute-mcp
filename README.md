@@ -252,7 +252,36 @@ export MATHEMATICA_KERNEL_PATH="/usr/local/Wolfram/Wolfram/14.3/Executables/Wolf
 }
 ```
 
-### OpenCode / Crush (`.opencode.json`)
+### OpenCode / Crush
+
+#### OpenCode 1.4.6+
+
+OpenCode 1.4.6+ uses command line to add MCP servers:
+
+```bash
+# Add MCP server interactively
+opencode mcp add
+
+# Then enter:
+# - Name: scicompute
+# - Type: stdio
+# - Command: /home/username/.local/bin/scicompute-mcp
+```
+
+Or create `.opencode/mcp.json` in your project directory:
+
+```json
+{
+  "servers": {
+    "scicompute": {
+      "type": "stdio",
+      "command": "/home/username/.local/bin/scicompute-mcp"
+    }
+  }
+}
+```
+
+#### Older OpenCode versions (`.opencode.json`)
 
 ```json
 {
