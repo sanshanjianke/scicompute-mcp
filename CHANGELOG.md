@@ -9,16 +9,16 @@ All notable changes to this project will be documented in this file.
 ### Added
 
 - **Calling Convention**: Documented MCP tool naming conventions for different clients (Claude Code vs OpenCode) in README.
-- **Documentation Hint**: Added hint in compute tool description pointing to `docs/doc-expert.md` for documentation URLs.
+- **doc Tool**: New MCP tool to get documentation URLs for all backends. No longer depends on external files.
 
 ### Changed
 
 - **Tool Descriptions**: Updated backend list in compute/stop tool descriptions to include all available backends.
-- **doc-expert.md**: Moved from `.opencode/skills/` to `docs/` directory for better visibility.
 
 ### Removed
 
 - **skills directories**: Removed `.opencode/skills/` and `.claude/skills/` directories (skills are not auto-loaded by subagents).
+- **doc-expert.md**: Removed from docs/ - functionality now provided by doc tool.
 
 ## [0.1.7] - 2026-04-16
 

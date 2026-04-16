@@ -87,12 +87,79 @@ signal.signal(signal.SIGINT, _signal_handler)
 signal.signal(signal.SIGHUP, _signal_handler)
 
 
+DOC_URLS = {
+    "mathematica": {
+        "function": "https://reference.wolfram.com/language/ref/{symbol}.html",
+        "guide": "https://reference.wolfram.com/language/guide/{topic}.html",
+        "example": "Plot3D -> https://reference.wolfram.com/language/ref/Plot3D.html"
+    },
+    "numpy": {
+        "reference": "https://numpy.org/doc/stable/reference/generated/numpy.{symbol}.html",
+        "example": "array -> https://numpy.org/doc/stable/reference/generated/numpy.array.html"
+    },
+    "scipy": {
+        "module": "https://docs.scipy.org/doc/scipy/reference/{module}.html",
+        "example": "integrate -> https://docs.scipy.org/doc/scipy/reference/integrate.html"
+    },
+    "matplotlib": {
+        "pyplot": "https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.{symbol}.html",
+        "example": "plot -> https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.plot.html"
+    },
+    "sympy": {
+        "reference": "https://docs.sympy.org/latest/reference/",
+        "modules": "https://docs.sympy.org/latest/modules/{module}.html",
+        "example": "calculus -> https://docs.sympy.org/latest/modules/calculus.html"
+    },
+    "pandas": {
+        "api": "https://pandas.pydata.org/docs/reference/api/pandas.{symbol}.html",
+        "example": "DataFrame -> https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.html"
+    },
+    "python": {
+        "library": "https://docs.python.org/3/library/{module}.html",
+        "example": "math -> https://docs.python.org/3/library/math.html"
+    },
+    "r": {
+        "function": "https://www.rdocumentation.org/packages/{package}/functions/{symbol}",
+        "packages": "base, graphics, stats, utils, ggplot2, dplyr",
+        "search": "https://www.rdocumentation.org/",
+        "example": "plot (graphics) -> https://www.rdocumentation.org/packages/graphics/functions/plot"
+    },
+    "julia": {
+        "base": "https://docs.julialang.org/en/v1/base/math/#Base.{symbol}",
+        "stdlib": "https://docs.julialang.org/en/v1/stdlib/{package}/",
+        "manual": "https://docs.julialang.org/en/v1/",
+        "example": "sin -> https://docs.julialang.org/en/v1/base/math/#Base.sin"
+    },
+    "octave": {
+        "function": "https://docs.octave.org/interpreter/XREF{symbol}.html",
+        "index": "https://docs.octave.org/interpreter/Function-Index.html",
+        "example": "plot -> https://docs.octave.org/interpreter/XREFplot.html"
+    },
+    "sage": {
+        "search": "https://doc.sagemath.org/html/en/reference/search.html?q={symbol}",
+        "calculus": "https://doc.sagemath.org/html/en/reference/calculus/",
+        "plotting": "https://doc.sagemath.org/html/en/reference/plotting/",
+        "example": "integrate -> https://doc.sagemath.org/html/en/reference/search.html?q=integrate"
+    },
+    "maxima": {
+        "manual": "https://maxima.sourceforge.io/docs/manual/maxima.html",
+        "note": "Single page manual, use browser search (Ctrl+F) to find functions",
+        "internal": "Use '? functionname' or '?? keyword' within Maxima"
+    },
+    "matlab": {
+        "function": "https://www.mathworks.com/help/matlab/ref/{symbol}.html",
+        "search": "https://www.mathworks.com/help/search.html?q={symbol}",
+        "example": "plot3 -> https://www.mathworks.com/help/matlab/ref/plot3.html"
+    }
+}
+
+
 @server.list_tools()
 async def list_tools() -> list[Tool]:
     return [
         Tool(
             name="compute",
-            description="Execute scientific computing code. Supports multiple backends (mathematica, sage, py_scientific, r, octave, julia, maxima). Use 'backend' parameter to specify, or leave empty for auto-select. For documentation URLs, see docs/doc-expert.md.",
+            description="Execute scientific computing code. Supports multiple backends (mathematica, sage, py_scientific, r, octave, julia, maxima). Use 'backend' parameter to specify, or leave empty for auto-select. For documentation URLs, use the doc tool.",
             inputSchema={
                 "type": "object",
                 "properties": {
@@ -125,6 +192,23 @@ async def list_tools() -> list[Tool]:
                     "backend": {
                         "type": "string",
                         "description": "Backend name (e.g., 'octave', 'mathematica'). Leave empty to list running backends."
+                    }
+                }
+            }
+        ),
+        Tool(
+            name="doc",
+            description="Get documentation URLs for computing backends. Use this to find where to look up function documentation. Call without args to see all backends, or specify backend to get specific URLs.",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "backend": {
+                        "type": "string",
+                        "description": "Backend name (mathematica, numpy, scipy, matplotlib, sympy, pandas, python, r, julia, octave, sage, maxima, matlab). Leave empty to see all."
+                    },
+                    "symbol": {
+                        "type": "string",
+                        "description": "Function/class name to look up. If provided, returns URL template with symbol filled in."
                     }
                 }
             }
@@ -222,6 +306,36 @@ async def call_tool(name: str, arguments: dict) -> list:
                 return [MCPTextContent(type="text", text=json.dumps(result))]
             except Exception as e:
                 _log(f"  stop error: {e}")
+                return [MCPTextContent(type="text", text=f"Error: {e}")]
+
+        elif name == "doc":
+            _log(f"  DOC")
+            backend = arguments.get("backend", "").lower() if arguments.get("backend") else None
+            symbol = arguments.get("symbol", "").lower() if arguments.get("symbol") else None
+            
+            try:
+                if backend and backend in DOC_URLS:
+                    info = DOC_URLS[backend]
+                    if symbol:
+                        result = {"backend": backend, "symbol": symbol}
+                        for key, url_template in info.items():
+                            if key != "note" and key != "packages" and key != "example" and key != "internal":
+                                if "{symbol}" in url_template:
+                                    result[key] = url_template.replace("{symbol}", symbol)
+                                elif "{package}" in url_template:
+                                    result[key] = url_template
+                                else:
+                                    result[key] = url_template
+                    else:
+                        result = {"backend": backend, "urls": info}
+                elif backend:
+                    result = {"error": f"Unknown backend: {backend}", "available": list(DOC_URLS.keys())}
+                else:
+                    result = {"backends": list(DOC_URLS.keys()), "hint": "Call doc(backend='...') for specific backend URLs"}
+                
+                return [MCPTextContent(type="text", text=json.dumps(result, indent=2))]
+            except Exception as e:
+                _log(f"  doc error: {e}")
                 return [MCPTextContent(type="text", text=f"Error: {e}")]
 
         else:

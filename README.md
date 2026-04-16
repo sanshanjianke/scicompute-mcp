@@ -398,6 +398,25 @@ stop("ALL")     # Stop all running backends
 
 **Safety design**: Calling `stop()` without arguments will NOT stop any backends. It returns a list of running backends. This prevents accidental data loss.
 
+### doc(backend?, symbol?)
+
+Get documentation URLs for computing backends. Use this to find where to look up function documentation.
+
+```python
+# List all backends with documentation
+doc()
+
+# Get URLs for a specific backend
+doc(backend="mathematica")
+doc(backend="numpy")
+
+# Get URL for a specific function
+doc(backend="mathematica", symbol="Plot3D")
+doc(backend="octave", symbol="linspace")
+```
+
+**Supported backends**: mathematica, numpy, scipy, matplotlib, sympy, pandas, python, r, julia, octave, sage, maxima, matlab
+
 ## Usage Examples
 
 Ask your AI assistant:
@@ -416,15 +435,19 @@ Look up NDSolve documentation
 
 When you need detailed documentation for a function:
 
-1. Read `docs/doc-expert.md` for documentation URLs by backend
+1. Use the `doc` tool to get documentation URLs
 2. Launch a subagent with Task tool to fetch and extract documentation
-3. Supported backends: Mathematica, Python Scientific, R, Julia, Octave, SageMath, Maxima, MATLAB
+3. Supported backends: Mathematica, NumPy, SciPy, Matplotlib, SymPy, Pandas, R, Julia, Octave, SageMath, Maxima, MATLAB
 
 Example:
 ```
+# Get documentation URL
+doc(backend="mathematica", symbol="Plot3D")
+
+# Then fetch the documentation
 Task(
   description="Fetch Plot3D docs",
-  prompt="Fetch Mathematica documentation for Plot3D from https://reference.wolfram.com/language/ref/plot3d.html",
+  prompt="Fetch Mathematica documentation for Plot3D from the URL returned by doc tool",
   subagent_type="general"
 )
 ```
@@ -435,7 +458,7 @@ Task(
 - `docs/r.md` - R collaboration guide
 - `docs/maxima.md` - Maxima collaboration guide
 - `docs/octave.md` - Octave collaboration guide
-- `docs/doc-expert.md` - Documentation URLs and fetch guide
+- Use `doc()` tool for documentation URLs
 
 ## Requirements
 
