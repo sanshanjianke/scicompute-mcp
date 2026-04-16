@@ -8,6 +8,7 @@ MCP server providing scientific computing capabilities for AI coding assistants.
 |---------|----------|
 | mathematica | Symbolic computation, numerical computing, plotting |
 | sage | Number theory, algebra, symbolic computation |
+| julia | High-performance numerical computing, plotting |
 | py_scientific | Python scientific computing (NumPy, SciPy, SymPy, Matplotlib) |
 | r | Statistical computing, data visualization |
 | octave | Numerical computing, plotting |

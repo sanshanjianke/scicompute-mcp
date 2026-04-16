@@ -4,6 +4,20 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [1.0.2] - 2026-04-16
+
+### Fixed
+
+- **Julia Backend: MCP connection disconnected after several calls** - Child process was inheriting parent's stdin file descriptor, which interfered with MCP's stdio communication. Fixed by setting `stdin=subprocess.DEVNULL` in subprocess.Popen.
+
+- **R Backend: Process crash not auto-recovered** - `is_running` property now checks `_process.poll() is None` to verify process is actually alive. `start()` and `evaluate()` methods now detect and restart dead processes.
+
+### Changed
+
+- **Julia Backend**: Switched to HTTP server mode for better isolation from MCP stdio communication.
+
+- **R Backend**: Improved process lifecycle management with automatic recovery on crash.
+
 ## [1.0.1] - 2026-04-14
 
 ### Fixed
